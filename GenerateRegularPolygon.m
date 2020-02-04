@@ -40,7 +40,18 @@ else
 end
 
 %% Check for center of gravity
-y_vertices = y_vertices - min(y_vertices);
+if min(y_vertices) < 0
+y_vertices = y_vertices + abs(min(y_vertices));
+else
+y_vertices = y_vertices - abs(min(y_vertices));    
+end
+
+if min(x_vertices) < 0
+x_vertices = x_vertices + abs(min(x_vertices));
+else
+x_vertices = x_vertices - abs(min(x_vertices));    
+end
+
 
 [x_centroid, ~] = polygoncentroid(x_vertices,y_vertices);
 
@@ -48,17 +59,9 @@ CenterOfMass_balanced = nnz(x_centroid >= min(x_vertices(y_vertices == min(y_ver
 
 % Re-run of the structure's center of gravity does not fall within the base
 if CenterOfMass_balanced ~= 1
-    GenerateRegularPolygon ( aveRadius, numVerts, AspectRatio )
+    clearvars -except aveRadius numVerts AspectRatio;
+%     disp("Not balanced, rerunning \n");
+    [x_vertices, y_vertices] = GenerateRegularPolygon ( aveRadius, numVerts, AspectRatio );
 end
 
-end
-
-%% This function finds the centroid (Center of gravity) of the 2D polygon
-function [xc,yc] = polygoncentroid(x,y)
-xn = circshift(x,-1);
-yn = circshift(y,-1);
-A = x.*yn-xn.*y;
-a = 3*sum(A);
-xc = sum((x+xn).*A)/a;
-yc = sum((y+yn).*A)/a;
 end
