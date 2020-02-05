@@ -20,7 +20,7 @@ function quadrant_PolyMaskValues = MeshPolygon(binaryImage)
 
 %% Setting mesh grid spacing along x and y axes
 % Set the number of grids (NumOfMeshes x NumOfMeshes)
-NumOfMeshes = 5;
+NumOfMeshes = 4;
 
 spacing = round(linspace(0, size(binaryImage,1), NumOfMeshes+1));
 
