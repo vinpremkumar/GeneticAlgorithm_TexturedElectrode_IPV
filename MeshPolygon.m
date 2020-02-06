@@ -48,8 +48,8 @@ for i = 1:NumOfMeshes
 %         SpacingIndex_y = spacing(NumOfMeshes-i+1)+1:1:spacing(NumOfMeshes-i+2);
         SpacingIndex_x = spacing(j)+1:1:spacing(j+1);
         
-        
-        MaskedValues = binaryImage(SpacingIndex_y,SpacingIndex_x);
+        % Input the mask values into the respective grid
+        quadrant_PolyMaskValues{i,j} = binaryImage(SpacingIndex_y,SpacingIndex_x);
         
         % Testing purpose only
         
@@ -64,10 +64,6 @@ for i = 1:NumOfMeshes
         %  figure(2)
         %  imshow(flip(MaskedValues))
         %
-        
-        % Input the mask values into the respective grid
-        quadrant_PolyMaskValues{i,j} = MaskedValues;
-        
     end
 end
 
