@@ -3,6 +3,11 @@
 % 
 % It was answered by Bruno Luong to a question in Mathworks's forum
 % Link: https://www.mathworks.com/matlabcentral/answers/469852-how-do-i-find-the-centre-of-gravity-for-an-irregular-shape#answer_383244
+% 
+% Parameters:
+% Inputs: x,y     - Polygon's x and y vertices
+% 
+% Output: [xc,yc] - Centroid of the polygon
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [xc,yc] = polygoncentroid(x,y)

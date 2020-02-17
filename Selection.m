@@ -1,3 +1,19 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tournament selection method for Genetic Algorithm. K number of 
+% candidates are chosen from the population and ranked from best to worst.
+%
+% Parameters:
+% Inputs: fitnessSorted_breed - Fitness scores sorted in ascending order
+%         popSorted_breed     - Population sorted in ascending order
+%                               according to their fitness value
+%         nPop_withoutBest    - Number of population members excluding the
+%                               best member
+%         numOfChildren       - Number of children resulting from
+%                               cross-over
+% Output: nextParents         - Set of parents used for reproduction for
+%                               the next generation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function nextParents = Selection(fitnessSorted_breed, popSorted_breed, nPop_withoutBest, numOfChildren)
 rng('shuffle');
 %% Tounament selection method:

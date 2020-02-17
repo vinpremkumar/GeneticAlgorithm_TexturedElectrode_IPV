@@ -1,11 +1,21 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Reconstructs the polygon as vertices from the binary image.
+%
+% Parameters:
+% Inputs: binaryImage        - Outputs of MaskPolygon function
+% 
+% Output: newPolygonVertices - x and y vertices of the polygon are the
+%                              first and second columns of this variable
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function newPolygonVertices = ReconstructPolygon(binaryImage)
 %% Find the binary image's boundaries and ignore holes
 boundaries = bwboundaries(flip(binaryImage), 4, 'noholes');
 
 %% Plotting the biggest continuous structure only
-% Find the biggest continuour structure
+% Find the biggest continuous structure
 boundariesSize =  arrayfun(@(x) size(x{:},1),boundaries);
-% Ouput the structure to thisBoundary variable
+% Ouput the structure to newPolygonVertices variable
 newPolygonVertices = boundaries{boundariesSize == max(boundariesSize)};
 % Changing x to first column and y to second column
 newPolygonVertices = newPolygonVertices(:,[2,1]);

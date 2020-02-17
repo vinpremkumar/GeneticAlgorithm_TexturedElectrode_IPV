@@ -1,17 +1,18 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Masks the 2D polygon in a static reference plane of size 2*Radius x 2*Radius.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Masks the 2D polygon in a reference plane of size 2*Radius x 2*Radius.
 % This will convert the vertices into a solid 2D polygon
-% The polygon is meshed over the reference plane and is indicated by logic 1, 
-% while the empty area is indicated by logic 0
+% The polygon is meshed over the reference plane and is indicated by logic  
+% 1, while the empty area is indicated by logic 0
 % 
-% Params:
-%     Radius      - The average radius of the ellipse inside which the polygon will be plotted
-%                   This is obtained from GenerateRegularPolygon.m
-%     x,y         - Vertices of the 2D polygon. 
-%     binaryImage - Masked image of the 2D polygon. Size: 2*Radius x 2*Radius
+% Parameters:
+% Inputs: Radius      - The average radius of the ellipse inside which the 
+%                       polygon will be plotted.
+%                       This is obtained from GenerateRegularPolygon.m
+%         x,y         - Vertices of the 2D polygon.
 %
-% Returns binaryImage (1 = area covered by polygon, 0 = uncovered area).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Output: binaryImage - Returns binaryImage (1 = area covered by polygon, 
+%                       0 = uncovered area)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function binaryImage = MaskPolygon(x,y,Radius)
 %% Testing purpose only

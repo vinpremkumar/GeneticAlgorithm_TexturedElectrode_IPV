@@ -1,3 +1,14 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calculates the fitness of the population (used for Genetic Algorithm)
+%
+% Parameters:
+% Inputs: distanceBetweenGratings - Inter-grating pattern distance
+%         binaryImage             - Meshed polygon represented as a logical
+%                                   image
+% 
+% Output: fitnessValue            - PCE(experimental) - PCE(simulated)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$$
+
 function fitnessValue = FitnessFunction (distanceBetweenGratings, binaryImage)
 % Reconstruct vertices from binary image
 polygonVertices = ReconstructPolygon(binaryImage);

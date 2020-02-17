@@ -1,4 +1,25 @@
-function MergedImage = MergePolygon(binaryImage1, binaryImage2, mutationProbability, numOfMeshes)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Merges two binary images into 1 image.
+% A random binary matrix of size numOfMeshes x numOfMeshes is created to
+% indicate which section of the 2 binary images are chosen for making the
+% final merged image.
+% This is the reproduction/cross-over section for Genetic Algorithm.
+%
+% Parameters:
+% Inputs: binaryImage 1      - First binary image
+%         binaryImage 2      - Second binary image
+%         mutationProability - In GA, a probability of mutation is
+%                             introduced in the cross over step.
+%                             One of the random binary matrix's value is
+%                             switched if mutationProbability condition is
+%                             satisfied
+%         numOfMeshes        - Decides how the binaryImages are partitioned
+% 
+% Output: mergedImage        - Output binary image of the polygon created 
+%                              from binaryImages 1 and 2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function mergedImage = MergePolygon(binaryImage1, binaryImage2, mutationProbability, numOfMeshes)
 maxImageSize = max(size(binaryImage1,2), size(binaryImage2,1));
 
 %% MeshSpacing
@@ -44,14 +65,14 @@ end
 end
 
 % Initialize final MergedImage
-MergedImage = false(spacing(end),spacing(end));
+mergedImage = false(spacing(end),spacing(end));
 
 % Merge the Image into one image
 for i = 1:numOfMeshes
     for j = 1:numOfMeshes
         for k = 1:spacing(2)
             for l = 1:spacing(2)
-                MergedImage(k+spacing(i),l+spacing(j)) = temp_MergedImage{i,j}(k,l);
+                mergedImage(k+spacing(i),l+spacing(j)) = temp_MergedImage{i,j}(k,l);
             end
         end
         

@@ -1,14 +1,16 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Mesh the masked polygon into NumOfMeshes x NumOfMeshes.
-% The output cell containes the masked matrix values seperated into NumOfMeshes x NumOfMeshes grids.
+% The output cell containes the masked matrix values seperated into 
+% NumOfMeshes x NumOfMeshes grids.
 %
-% Params:
-%     binaryImage             - Outputs of MaskPolygon function.
-%     quadrant_PolyMaskValues - Masked polygon values sorted into their respective meshgrids.
+% Parameters:
+% Inputs: binaryImage             - Outputs of MaskPolygon function
+%         quadrant_PolyMaskValues - Masked polygon values sorted into their 
+%                                   respective meshgrids
 %
-% Returns a cell: quadrant_PolyMaskValues which contain
-% the Masked polygon values sorted into their respective meshgrids.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Output: quadrant_PolyMaskValues - Masked polygon values sorted into their 
+%                                   respective meshgrids
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function quadrant_PolyMaskValues = MeshPolygon(binaryImage, NumOfMeshes)
 %% Testing purpose only

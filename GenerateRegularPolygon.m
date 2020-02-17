@@ -1,13 +1,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Creates a 2D polygon by sampling points on a Ellipse.
 %
-% Params:
-%     aveRadius   - The average radius of the ellipse inside which the polygon will be plotted
-%                   This roughly controls how large the polygon will be.
-%     numVerts    - Number of vertices of the polygon. 
-%     AspectRatio - VerticalAxesLength/HorizontalAxesLength (b/a) of the Ellipse.
+% Parameters:
+% Inputs: aveRadius   - The average radius of the ellipse inside which the 
+%                       polygon will be plotted
+%                       This roughly controls how large the polygon will be
+%         numVerts    - Number of vertices of the polygon 
+%         AspectRatio - VerticalAxesLength/HorizontalAxesLength (b/a) of 
+%                       the Ellipse
 %
-% Returns a list of vertices as (x,y).
+% Output: [x_vertices, y_vertices] = Returns a list of vertices as (x,y)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [x_vertices, y_vertices] = GenerateRegularPolygon ( aveRadius, numVerts, AspectRatio )

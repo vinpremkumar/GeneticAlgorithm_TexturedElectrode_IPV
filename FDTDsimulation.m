@@ -1,12 +1,12 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Returns the ideal Jsc calculated from FDTD simulation
 %
 % Parameters:
-% Input:  distanceBetweenGratings - Inter-grating pattern distance
+% Inputs: distanceBetweenGratings - Inter-grating pattern distance
 %         thisBoundary            - Polygon vertices
 % 
 % Output: JscIdeal                - Jsc calculated from FDTD simulation
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function JscIdeal = FDTDsimulation (distanceBetweenGratings, imageBoundary)
 warning('off', 'MATLAB:polyshape:repairedBySimplify');
