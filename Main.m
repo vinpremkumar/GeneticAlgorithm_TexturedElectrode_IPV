@@ -18,12 +18,12 @@ currentGeneration = 0;
 rng('shuffle');
 
 %% Input the radius in which polygon is created (Unit: nm)
-                                        %%%%%%%%%%%%%%%%%%%%%%%
-                                        % Enter circle radius % 
-inputRadius = 10;                       %   within which the  %
-                                        %  random polygon is  %
-                                        %       created       %
-Radius      = (inputRadius * 2000)/2;   %%%%%%%%%%%%%%%%%%%%%%%
+                                          %%%%%%%%%%%%%%%%%%%%%%%
+                                          % Enter circle radius % 
+inputDiameter = 10;                       %   within which the  %
+                                          %  random polygon is  %
+                                          %       created       %
+Radius      = (inputDiameter/2 * 1000)/2; %%%%%%%%%%%%%%%%%%%%%%%
 
 %% Pre-allocation of memory
 x = cell(1, maxPopulation);
