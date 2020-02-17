@@ -1,4 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Creates a 2D polygon by sampling points on a Ellipse.
 %
 % Params:
@@ -8,7 +8,7 @@
 %     AspectRatio - VerticalAxesLength/HorizontalAxesLength (b/a) of the Ellipse.
 %
 % Returns a list of vertices as (x,y).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [x_vertices, y_vertices] = GenerateRegularPolygon ( aveRadius, numVerts, AspectRatio )
 
@@ -40,6 +40,7 @@ else
 end
 
 %% Check for center of gravity
+% Offset the polygon to have a vertex at (0,0)
 if min(y_vertices) < 0
 y_vertices = y_vertices + abs(min(y_vertices));
 else
@@ -52,7 +53,7 @@ else
 x_vertices = x_vertices - abs(min(x_vertices));    
 end
 
-
+% Find the centroid
 [x_centroid, ~] = polygoncentroid(x_vertices,y_vertices);
 
 CenterOfMass_balanced = nnz(x_centroid >= min(x_vertices(y_vertices == min(y_vertices))) & x_centroid <= max(x_vertices(y_vertices == min(y_vertices))));

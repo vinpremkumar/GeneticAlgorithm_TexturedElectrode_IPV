@@ -1,0 +1,343 @@
+##############################################
+# Generation rate
+# This script calculates the electrical generation 
+# rate by assuming that each absorbed photon generates 
+# one electron-hole pair. 
+# The FDTD source intensity is normalized to match the 
+# 1000 lx white LED power spectrum.
+# This object also saves the data to a data file that 
+# can be imported into the Generation rate object within 
+# Lumerical's DEVICE, for further electrical simulation.
+#
+# Notes: 
+# Exporting the generation rate for DEVICE
+# This object exports the generation rate data
+# in a form that can be easily imported into 
+# the Import Generation rate object. 
+# Exporting multiple periods
+# Typical FDTD simulations include a single period
+# of the structure, while typical DEVICE simulations
+# include many periods. This script will array the 
+# generation rate data to several periods, simplifying 
+# the process of importing the data into DEVICE. 
+# Jsc calculation in 2D/3D simulations
+# When calculating Jsc in 3D simulations, we assume the source
+# propagation is along Z. In 2D, propagation along Y.
+#
+# Input properties
+# export filename: file name used to export generation rate data to DEVICE
+# axis to average: the 2D DEVICE solver can only import 2D generation rate data. 
+# average dimension: the dimension to compress, by averaging the generation rate over that dimension. 'x' or 'y', or 'none'. Only for 3D simulations.
+# periods: the number of periods to array the generation rate.
+# implemented when compressing in one dimension.
+# make plots: if set to 1, the analysis script will create plots of the absorption and generation rate
+#
+# Output properties
+# Pabs: power absorbed per unit volume at each position (units: fraction of source power/m^3)
+# Pabs_total: total absorbed power vs frequency
+# G: electrical generation rate as a function of x,y,z (units: charge pairs/m^3/s)
+# G_export the generation rate exported to DEVICE (averaged and/or arrayed) (units: charge pairs/m^3/s)
+# Jsc: short circuit current (units: Amp, or Amp/m in 2D)
+#
+# Tags: generation rate electron hole charge device short circuit current
+#
+# Copyright 2012 Lumerical Solutions Inc
+##############################################
+
+## 1000 lx or 900 lx
+#
+#Insert source wavelength and spectral power as vectors
+sourcewavelength = [300,301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324,325,326,327,328,329,330,331,332,333,334,335,336,337,338,339,340,341,342,343,344,345,346,347,348,349,350,351,352,353,354,355,356,357,358,359,360,361,362,363,364,365,366,367,368,369,370,371,372,373,374,375,376,377,378,379,380,381,382,383,384,385,386,387,388,389,390,391,392,393,394,395,396,397,398,399,400,401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,450,451,452,453,454,455,456,457,458,459,460,461,462,463,464,465,466,467,468,469,470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495,496,497,498,499,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,542,543,544,545,546,547,548,549,550,551,552,553,554,555,556,557,558,559,560,561,562,563,564,565,566,567,568,569,570,571,572,573,574,575,576,577,578,579,580,581,582,583,584,585,586,587,588,589,590,591,592,593,594,595,596,597,598,599,600,601,602,603,604,605,606,607,608,609,610,611,612,613,614,615,616,617,618,619,620,621,622,623,624,625,626,627,628,629,630,631,632,633,634,635,636,637,638,639,640,641,642,643,644,645,646,647,648,649,650,651,652,653,654,655,656,657,658,659,660,661,662,663,664,665,666,667,668,669,670,671,672,673,674,675,676,677,678,679,680,681,682,683,684,685,686,687,688,689,690,691,692,693,694,695,696,697,698,699,700,701,702,703,704,705,706,707,708,709,710,711,712,713,714,715,716,717,718,719,720,721,722,723,724,725,726,727,728,729,730,731,732,733,734,735,736,737,738,739,740,741,742,743,744,745,746,747,748,749,750,751,752,753,754,755,756,757,758,759,760,761,762,763,764,765,766,767,768,769,770,771,772,773,774,775,776,777,778,779,780,781,782,783,784,785,786,787,788,789,790,791,792,793,794,795,796,797,798,799,800,801,802,803,804,805,806,807,808,809,810,811,812,813,814,815,816,817,818,819,820,821,822,823,824,825,826,827,828,829,830,831,832,833,834,835,836,837,838,839,840,841,842,843,844,845,846,847,848,849,850,851,852,853,854,855,856,857,858,859,860,861,862,863,864,865,866,867,868,869,870,871,872,873,874,875,876,877,878,879,880,881,882,883,884,885,886,887,888,889,890,891,892,893,894,895,896,897,898,899,900,901,902,903,904,905,906,907,908,909,910,911,912,913,914,915,916,917,918,919,920,921,922,923,924,925,926,927,928,929,930,931,932,933,934,935,936,937,938,939,940,941,942,943,944,945,946,947,948,949,950,951,952,953,954,955,956,957,958,959,960,961,962,963,964,965,966,967,968,969,970,971,972,973,974,975,976,977,978,979,980,981,982,983,984,985,986,987,988,989,990,991,992,993,994,995,996,997,998,999,1000,1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1011,1012,1013,1014,1015,1016,1017,1018,1019,1020,1021,1022,1023,1024,1025,1026,1027,1028,1029,1030,1031,1032,1033,1034,1035,1036,1037,1038,1039,1040,1041,1042,1043,1044,1045,1046,1047,1048,1049,1050,1051,1052,1053,1054,1055,1056,1057,1058,1059,1060,1061,1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1072,1073,1074,1075,1076,1077,1078,1079,1080,1081,1082,1083,1084,1085,1086,1087,1088,1089,1090,1091,1092,1093,1094,1095,1096,1097,1098,1099,1100];
+sourcespectra = [0.2243,0.232,0.2196,0.2056,0.1756,0.1473,0.1093,0.0937,0.09,0.1062,0.1214,0.1426,0.1544,0.1496,0.1334,0.1268,0.1123,0.1028,0.104,0.1134,0.1106,0.1109,0.1094,0.108,0.0962,0.0893,0.0836,0.0791,0.0654,0.0611,0.0583,0.0606,0.0598,0.0665,0.0725,0.0772,0.0745,0.0794,0.0841,0.0864,0.0982,0.1165,0.127,0.1393,0.1503,0.1471,0.1332,0.1211,0.1083,0.1035,0.1018,0.113,0.125,0.13,0.1305,0.1253,0.111,0.0938,0.0838,0.0685,0.0597,0.0644,0.0689,0.0679,0.0693,0.0712,0.0641,0.0606,0.0588,0.0576,0.057,0.0573,0.0575,0.0563,0.0632,0.066,0.0655,0.0634,0.0611,0.047,0.0359,0.0324,0.0303,0.0331,0.0437,0.0521,0.0562,0.0579,0.054,0.0479,0.0432,0.0413,0.0414,0.0444,0.0487,0.0545,0.0549,0.0551,0.0558,0.0552,0.0549,0.0593,0.0657,0.0746,0.0823,0.0857,0.0886,0.0841,0.0775,0.073,0.0739,0.0773,0.0875,0.0989,0.1115,0.1248,0.1332,0.148,0.1679,0.1931,0.2214,0.2595,0.2921,0.3121,0.3284,0.3433,0.3538,0.3742,0.4082,0.4449,0.4903,0.5434,0.5921,0.6542,0.7334,0.813,0.9095,1.0249,1.1445,1.2639,1.3992,1.5357,1.6817,1.8484,2.0409,2.2612,2.5099,2.7723,3.0369,3.2955,3.5403,3.7634,3.9601,4.1112,4.211,4.2251,4.1579,4.0188,3.809,3.5592,3.315,3.0648,2.8258,2.6292,2.4416,2.2623,2.1059,1.9743,1.8501,1.7503,1.6574,1.5679,1.4677,1.3637,1.2549,1.1509,1.0584,0.9832,0.9175,0.8651,0.8193,0.7801,0.7445,0.7105,0.6781,0.6642,0.6592,0.6541,0.6643,0.6826,0.6872,0.6869,0.6954,0.6973,0.6946,0.7066,0.7204,0.734,0.7558,0.7905,0.82,0.851,0.8844,0.9187,0.9464,0.9761,1.01,1.0488,1.091,1.135,1.1874,1.2448,1.3057,1.3618,1.4172,1.4659,1.5164,1.5491,1.582,1.6212,1.6586,1.689,1.7295,1.7779,1.8209,1.8735,1.9239,1.9719,1.9972,2.0105,2.0043,1.9945,1.9731,1.9518,1.949,1.9502,1.9462,1.955,1.9934,2.0137,2.0222,2.0469,2.0782,2.0702,2.0601,2.0791,2.0729,2.0466,2.0386,2.0384,2.0047,1.9946,2.0002,2.0009,1.9965,2.0122,2.02,2.0112,2.0121,2.0203,2.0335,2.0386,2.0452,2.0468,2.0328,1.9808,1.9247,1.8878,1.8443,1.8325,1.865,1.9036,1.9235,1.9483,1.9488,1.9464,1.9692,1.9937,2.0496,2.1018,2.1411,2.1748,2.2332,2.2089,2.1674,2.1403,2.0786,2.0016,1.9549,1.9767,1.9767,2.016,2.0477,2.1288,2.1591,2.1818,2.1661,2.1643,2.1303,2.1469,2.1536,2.159,2.1539,2.127,2.027,1.9537,1.8842,1.7904,1.7356,1.7392,1.7118,1.6861,1.6981,1.691,1.6638,1.6636,1.6238,1.5559,1.5047,1.4189,1.358,1.3561,1.374,1.3646,1.4005,1.3819,1.3856,1.4018,1.4599,1.522,1.6101,1.6505,1.6764,1.6354,1.5894,1.5216,1.4768,1.3895,1.3146,1.2245,1.1692,1.1331,1.163,1.2251,1.277,1.3095,1.3025,1.2274,1.1536,1.0829,1.0089,0.9494,0.9218,0.8658,0.825,0.7883,0.755,0.7293,0.7111,0.6984,0.6996,0.6907,0.6798,0.6876,0.6789,0.6571,0.6427,0.632,0.6067,0.5803,0.5549,0.5253,0.4882,0.4598,0.4472,0.4382,0.4412,0.4489,0.4548,0.455,0.453,0.4441,0.4285,0.4088,0.3967,0.3876,0.3764,0.3772,0.3815,0.3706,0.3648,0.3637,0.3414,0.3211,0.3128,0.2916,0.2656,0.2634,0.2644,0.2525,0.252,0.267,0.2811,0.2937,0.3167,0.331,0.3332,0.3315,0.3185,0.3002,0.2883,0.2675,0.2386,0.2208,0.217,0.2109,0.2179,0.2308,0.2406,0.2357,0.2304,0.2233,0.2131,0.2009,0.1889,0.1833,0.1782,0.1861,0.2041,0.231,0.258,0.287,0.3002,0.3066,0.3071,0.2947,0.2802,0.2653,0.2423,0.2225,0.2082,0.1946,0.1969,0.205,0.2027,0.2072,0.2128,0.1945,0.1829,0.1847,0.1854,0.1889,0.2205,0.2539,0.2931,0.3384,0.3764,0.3852,0.3824,0.3562,0.317,0.2857,0.2873,0.2942,0.313,0.3457,0.3836,0.3899,0.391,0.3921,0.375,0.3436,0.3354,0.3216,0.3208,0.3109,0.3027,0.2789,0.2875,0.2784,0.2925,0.3139,0.309,0.2779,0.2587,0.2396,0.2141,0.2328,0.2434,0.2347,0.2117,0.1972,0.1649,0.1434,0.1362,0.1314,0.116,0.1079,0.1087,0.1001,0.1038,0.1178,0.1308,0.1348,0.1494,0.1524,0.1454,0.1364,0.1256,0.1229,0.1293,0.1416,0.1472,0.1651,0.1764,0.1844,0.1928,0.2125,0.2242,0.2272,0.224,0.2257,0.2242,0.2199,0.2234,0.2253,0.2255,0.2228,0.212,0.2026,0.2032,0.1925,0.1798,0.1757,0.1608,0.1413,0.1295,0.1178,0.111,0.1185,0.129,0.1386,0.1489,0.1589,0.1611,0.1551,0.153,0.1587,0.1622,0.1645,0.1729,0.1802,0.1809,0.1767,0.181,0.1833,0.1724,0.1675,0.1664,0.1514,0.1382,0.147,0.1474,0.1472,0.1557,0.1635,0.1574,0.1575,0.1591,0.1584,0.1616,0.1682,0.166,0.1623,0.1535,0.1344,0.1176,0.1049,0.0939,0.0926,0.1086,0.1221,0.1401,0.1545,0.1635,0.1541,0.1488,0.1404,0.1329,0.1308,0.1348,0.1311,0.1221,0.1149,0.0995,0.0919,0.0954,0.1068,0.1115,0.124,0.1218,0.1062,0.0907,0.0882,0.0867,0.1008,0.1136,0.1212,0.1271,0.1271,0.1238,0.1335,0.153,0.1688,0.1846,0.1931,0.2001,0.2107,0.218,0.22,0.2274,0.2273,0.2055,0.185,0.1735,0.1547,0.1362,0.1347,0.1368,0.1429,0.1559,0.1775,0.1884,0.1922,0.1886,0.1871,0.1742,0.1595,0.1522,0.1463,0.1351,0.1326,0.1422,0.15,0.1551,0.1587,0.1597,0.1559,0.1467,0.1323,0.1297,0.1147,0.1046,0.1013,0.107,0.0949,0.1056,0.1135,0.1267,0.143,0.1725,0.1872,0.1948,0.1876,0.176,0.1578,0.1516,0.1456,0.1446,0.1417,0.142,0.1293,0.1291,0.1419,0.1653,0.1881,0.2144,0.2339,0.2324,0.2222,0.2187,0.2205,0.2232,0.2359,0.2464,0.2505,0.2602,0.2656,0.2776,0.2852,0.2909,0.2665,0.2407,0.2061,0.1909,0.1797,0.1962,0.2147,0.2206,0.2063,0.1869,0.1615,0.1327,0.1177,0.1115,0.1109,0.1077,0.1201,0.1393,0.1565,0.1631,0.1721,0.182,0.1904,0.1948,0.2164,0.2381,0.2303,0.2149,0.2086,0.1899,0.1684,0.1779,0.1848,0.1887,0.1869,0.191,0.1891,0.1937,0.1967,0.2267,0.2493,0.2474,0.2654,0.2858,0.2873,0.3127,0.3713,0.3758,0.3872,0.3985,0.3706,0.3248,0.3321,0.3537,0.3689,0.3822,0.4176,0.4391,0.4426,0.5066,0.6369,0.7502,0.8402,0.884,0.8382,0.7648,0.6763,0.6307,0.6678,0.7327,0.7683,0.8355,0.9057,0.9534,1.0435,1.1098,1.1635,1.1817,1.1325,0.9695,0.8857,0.7755,0.7226,0.7845,0.9637,1.0917,1.2464,1.2714,1.2556,1.2233,1.2167,1.2451,1.4757,1.6669,1.8863,2.1595,2.4288,2.4549,2.4493,2.4648,2.4866,2.4534,2.5804,2.802,2.7964,2.6726,2.6093,2.5617,2.4897,2.613];
+
+# get position vectors from monitor
+# Note that the monitor interpolation is disabled, so we also need the offset vectors
+f=getdata("field_act_L","f");
+x=getdata("field_act_L","x",1);
+y=getdata("field_act_L","y",1);
+z=getdata("field_act_L","z",1);
+delta_x=getdata("field_act_L","delta_x",1);
+delta_y=getdata("field_act_L","delta_y",1);
+if (havedata("field_act_L","dimension")==3) {
+delta_z=getdata("field_act_L","delta_z",1);
+} else {
+delta_z = 0;
+}
+
+Nx = length(x);
+Ny = length(y);
+Nz = length(z);
+Nf = length(f);
+
+##########################################################################
+# Calculate spatial absorption
+#?"Starting absorption (Pabs) calculation";
+W = meshgrid4d(4,x,y,z,f*2*pi); # create 4D matrix of f
+SP = meshgrid4d(4,x,y,z,sourcepower(f)); # 4D matrix of source power
+
+# calculate spatial absorption from each field_act_L component separately (watts/m^3)
+if (havedata("index_act_L","index_act_L_x")) {
+Pabs_x = 0.5*eps0*W*(abs(getdata("field_act_L","Ex",1))^2*imag(getdata("index_act_L","index_act_L_x",1)^2));
+Pabs_y = 0.5*eps0*W*(abs(getdata("field_act_L","Ey",1))^2*imag(getdata("index_act_L","index_act_L_y",1)^2));
+} else {
+Pabs_x = matrix(Nx,Ny,Nz,Nf);
+Pabs_y = matrix(Nx,Ny,Nz,Nf);
+}
+if (havedata("index_act_L","index_act_L_z")) {
+Pabs_z = 0.5*eps0*W*(abs(getdata("field_act_L","Ez",1))^2*imag(getdata("index_act_L","index_act_L_z",1)^2));
+} else {
+Pabs_z = matrix(Nx,Ny,Nz,Nf);
+}
+
+# spatially interpolate absorption to standard mesh cell locations 
+Pabs_matrix = ( interp(Pabs_x,x+delta_x,y,z,f,x,y,z,f) +
+interp(Pabs_y,x,y+delta_y,z,f,x,y,z,f) +
+interp(Pabs_z,x,y,z+delta_z,f,x,y,z,f) ) / SP;
+Pabs_x=0; Pabs_y=0; Pabs_z=0; W=0; SP=0; # Clear variables to free memory
+# end absorption calculation
+
+
+##########################################################################
+# Calculate generation rate
+#?"Starting generation rate (G) calculation";
+
+# Get the AM1.5 solar spectrum
+lam_nm = sourcewavelength; # solar spectrum wavelength vector, in units of nm.
+Psolar = sourcespectra; # solar power spectrum, in units of Watts/m^2/nm
+f_solar = 1e9*c/lam_nm; # solar spectrum frequency vector, in units of Hz
+Nf_solar = length(f_solar);
+
+# select the region of solar spectrum covered by the monitor data
+fl = max([min(f_solar),min(f)]);
+fh = min([max(f_solar),max(f)]);
+fi = find((f_solar>=fl)&(f_solar<=fh));
+f_solar = f_solar(fi);
+lam_nm = lam_nm(fi);
+Psolar = Psolar(fi);
+Nf_solar = length(f_solar);
+nm = Psolar/sourceintensity(f_solar); # units of 1/nm
+nm = meshgrid4d(4,x,y,z,nm);
+
+
+# Calculate number of absorbed photon per unit volume
+# assume this is equal to the number of generated electron/hole pairs
+if (havedata("index_act_L","index_x")) {
+gx = abs(getdata("field_act_L","Ex",1))^2 * imag(eps0*getdata("index_act_L","index_x",1)^2);
+gy = abs(getdata("field_act_L","Ey",1))^2 * imag(eps0*getdata("index_act_L","index_y",1)^2);
+} else {
+gx = matrix(Nx,Ny,Nz,Nf);
+gy = matrix(Nx,Ny,Nz,Nf);
+}
+if (havedata("index_act_L","index_z")) {
+gz = abs(getdata("field_act_L","Ez",1))^2 * imag(eps0*getdata("index_act_L","index_z",1)^2);
+} else {
+gz = matrix(Nx,Ny,Nz,Nf);
+}
+
+# sum contribution from each component, multiply by required constants, and
+# interpolate absorption to standard mesh cell locations and solar frequency vector
+g = 0.5 * ( interp(gx,x+delta_x,y,z,f,x,y,z,f_solar) +
+interp(gy,x,y+delta_y,z,f,x,y,z,f_solar) +
+interp(gz,x,y,z+delta_z,f,x,y,z,f_solar) ) / hbar;
+gx=0; gy=0; gz=0; # clear variables, to free memory
+
+# Calculate the generation rate by integrating 'g' over wavelength
+# The generate rate is the number of electron hole pairs per unit volume per second. (units: 1/m^3/s)
+G_matrix = integrate2(g*nm,4,lam_nm);
+g=0;
+# end generation rate calculation
+
+##########################################################
+# unfold data if symmetry BC's were used.
+#?"Unfolding";
+if ( (length(getdata("field_act_L","x",1)) != length(getdata("field_act_L","x",2))) ) {
+xTemp = x;
+x = [-x(Nx:-1:2); x];
+PabsTemp = Pabs_matrix;
+Pabs_matrix = matrix(2*Nx-1,Ny,Nz,Nf);
+GTemp = G_matrix;
+G_matrix = matrix(2*Nx-1,Ny,Nz);
+Pabs_matrix(1:(Nx-1),1:Ny,1:Nz,1:Nf) = PabsTemp(Nx:-1:2,1:Ny,1:Nz,1:Nf);
+Pabs_matrix(Nx:(2*Nx-1),1:Ny,1:Nz,1:Nf) = PabsTemp;
+G_matrix(1:(Nx-1),1:Ny,1:Nz) = GTemp(Nx:-1:2,1:Ny,1:Nz);
+G_matrix(Nx:(2*Nx-1),1:Ny,1:Nz) = GTemp;
+Nx = length(x);
+}
+if (length(getdata("field_act_L","y",1)) != length(getdata("field_act_L","y",2))) {
+yTemp = y;
+y = [-y(Ny:-1:2); y];
+PabsTemp = Pabs_matrix;
+Pabs_matrix = matrix(Nx,2*Ny-1,Nz,Nf);
+GTemp = G_matrix;
+G_matrix = matrix(Nx,2*Ny-1,Nz);
+Pabs_matrix(1:Nx,1:(Ny-1),1:Nz,1:Nf) = PabsTemp(1:Nx,Ny:-1:2,1:Nz,1:Nf);
+Pabs_matrix(1:Nx,Ny:(2*Ny-1),1:Nz,1:Nf) = PabsTemp;
+G_matrix(1:Nx,1:(Ny-1),1:Nz) = GTemp(1:Nx,Ny:-1:2,1:Nz);
+G_matrix(1:Nx,Ny:(2*Ny-1),1:Nz) = GTemp;
+Ny = length(y);
+}
+PabsTemp=0; GTemp=0; # Clear memory
+# end of unfolding
+
+
+##########################################################
+# Export data to DEVICE. Compress data in 3rd dimension, and Array the generation rate '1' time
+
+# check inputs
+dim = getdata("field_act_L","dimension");
+
+if ( (dim==2) & ("none" != "none") ) { message("Warning! Should not average in 2D simulations."); } 
+
+
+# average data over 3rd dimension for export to DEVICE
+if ("none" == "x") {
+G_temp = matrix(2,Ny,Nz);
+G_temp(1,1:Ny,1:Nz) = integrate2(G_matrix,1,x)/(max(x)-min(x));
+G_temp(2,1:Ny,1:Nz) = integrate2(G_matrix,1,x)/(max(x)-min(x));
+x_export = [min(x), max(x)];
+G_matrix_export = G_temp;
+y_export = y;
+z_export = z;
+}
+if ("none" == "y") {
+G_temp = matrix(Nx,2,Nz);
+G_temp(1:Nx,1,1:Nz) = integrate2(G_matrix,2,y)/(max(y)-min(y));
+G_temp(1:Nx,2,1:Nz) = integrate2(G_matrix,2,y)/(max(y)-min(y));
+y_export = [min(y), max(y)];
+G_matrix_export = G_temp;
+x_export = x;
+z_export = z;
+}
+if ((dim==3) & ("none" == "none")) {
+G_matrix_export = G_matrix;
+x_export = x;
+y_export = y;
+z_export = z;
+}
+if ((dim==2) & ("none" == "none")) {
+G_matrix_export = matrix(Nx,Ny,2);
+G_matrix_export(1:Nx,1:Ny,1) = G_matrix;
+G_matrix_export(1:Nx,1:Ny,2) = G_matrix;
+x_export = x;
+y_export = y;
+z_export = [-1e-6,1e-6];
+Nz=2;
+}
+# array data to include multiple 1 for export to DEVICE. 
+if ( ("none" == "x") & (1>1) ) {
+temp = G_matrix_export;
+for(i=1;i<1;i=i+1){
+G_matrix_export = [G_matrix_export, temp(1:length(x_export),2:Ny,1:Nz)];
+y_export = [y_export; y(2:Ny)+max(y_export)-min(y_export)];
+}
+y_export = y_export - (max(y_export) + min(y_export))/2; # re-center at zero
+}
+if ( (("none"=="none") | ("none"=="y")) & (1>1) ) { # for 3D and 2D, stretch in x direction only
+temp = G_matrix_export;
+for(i=1;i<1;i=i+1){
+G_matrix_export = [G_matrix_export; temp(2:Nx,1:length(y_export),1:Nz)];
+x_export = [x_export; x(2:Nx)+max(x_export)-min(x_export)];
+}
+x_export = x_export - (max(x_export) + min(x_export))/2; # re-center at zero
+}
+temp=0;
+
+# Use proper variable name for export to DEVICE data file.
+# create backup copy of original data
+x_original=x;
+y_original=y;
+z_original=z;
+G=G_matrix_export;
+x=x_export;
+y=y_export;
+z=z_export;
+
+if(length("G")>0){
+#?"save data file for DEVICE";
+matlabsave("G",x,y,z,G);
+}
+
+# revert back to standard position vectors
+x = x_original;
+y = y_original;
+z = z_original;
+Nz=length(z);
+
+
+##########################################################
+# Calculate the short circuit current (Jsc)
+normLengthX = max(x) - min(x);
+normLengthY = max(y) - min(y);
+Igen = e*integrate2(G_matrix,1:3,x,y,z); # A
+if (dim==3) {
+Jsc = Igen/(normLengthX*normLengthY); # A/m^2
+} else {
+Jsc = Igen/(normLengthX); # A/m^2
+}
+# end Jsc calculation
+
+# re-calculate Jsc for exported data, to confirm result is the same
+normLengthX = max(x_export) - min(x_export);
+normLengthY = max(y_export) - min(y_export);
+normLengthZ = max(z_export) - min(z_export);
+Igen_export = e*integrate2(G_matrix_export,1:3,x_export,y_export,z_export); # A
+if (dim==3) {
+Jsc_export = Igen_export/(normLengthX*normLengthY); # A/m^2
+} else {
+Jsc_export = Igen_export/(normLengthX*normLengthZ); # A/m^2
+}
+
+
+# create data sets
+Pabs = rectilineardataset("Pabs",x,y,z);
+Pabs.addparameter("lambda",c/f,"f",f);
+Pabs.addattribute("Pabs",Pabs_matrix);
+
+G = rectilineardataset("G",x,y,z);
+G.addattribute("G",G_matrix);
+
+G_export = rectilineardataset("G export",x_export,y_export,z_export);
+G_export.addattribute("G",G_matrix_export);
+
+Pabs_total = matrixdataset("Pabs total");
+Pabs_total.addparameter("lambda",c/f,"f",f);
+Pabs_total.addattribute("Pabs_total",integrate2(Pabs_matrix,1:3,x,y,z));
+
+#Jsc_matrix=Jsc;
+#Jsc = matrixdataset("Jsc");
+#Jsc.addattribute("Jsc",Jsc_matrix);
+Jsc=Jsc; # return as a simple matrix, rather than dataset
+
+
+##########################################################
+# create plots and output results to prompt
+#?"Current from simulation volume: " + num2str(Igen) + " A";
+Jsc_1000lx = Jsc;
+?"1000 lx indoor LED Jsc,ideal:";
+?num2str(Jsc)+" µA/cm^2";
+#?"Exported data short circuit current: " + num2str(Jsc_export) + " A/m^2";
+#?"Max generation rate: " + num2str(max(G.G)) + " 1/m^3/s";
+
+
+# plot results
+if (0) { 
+pos = (max(y)+min(y))/2;
+val = log10(pinch(G.G,2,find(y,pos)));
+image(x*1e9,z*1e9,val,"x (nm)","z (nm)","G at y=" + num2str(round(pos*1e9)) + "nm");
+val = pinch(pinch(Pabs.Pabs,4,Nf/2),2,find(y,pos));
+image(x*1e9,z*1e9,val,"x (nm)","z (nm)","Pabs at y=" + num2str(round(pos*1e9)) + "nm, lambda="+num2str(round(c/f(Nf/2)*1e9))+" nm");
+
+pos = (max(x)+min(x))/2;
+val = log10(pinch(G.G,1,find(x,pos)));
+image(y*1e9,z*1e9,val,"y (nm)","z (nm)","G at x=" + num2str(round(pos*1e9)) + "nm");
+val = pinch(pinch(Pabs.Pabs,4,Nf/2),1,find(x,pos));
+image(y*1e9,z*1e9,val,"y (nm)","z (nm)","Pabs at x=" + num2str(round(pos*1e9)) + "nm, lambda="+num2str(round(c/f(Nf/2)*1e9))+" nm");
+
+pos = (max(z)+min(z))/2;
+val = log10(pinch(G.G,3,find(z,pos)));
+image(x*1e9,y*1e9,val,"x (nm)","y (nm)","G at z=" + num2str(round(pos*1e9)) + "nm");
+val = pinch(pinch(Pabs.Pabs,4,Nf/2),3,find(z,pos));
+image(x*1e9,y*1e9,val,"x (nm)","y (nm)","Pabs at z=" + num2str(round(pos*1e9)) + "nm, lambda="+num2str(round(c/f(Nf/2)*1e9))+" nm");
+
+plot(c/f*1e9,integrate2(Pabs.Pabs,1:3,x,y,z),"wavelength (nm)","absorbed power");
+}

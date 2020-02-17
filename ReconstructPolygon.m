@@ -1,15 +1,40 @@
-function thisBoundary = ReconstructPolygon(binaryImage)
+function newPolygonVertices = ReconstructPolygon(binaryImage)
+%% Find the binary image's boundaries and ignore holes
+boundaries = bwboundaries(flip(binaryImage), 4, 'noholes');
 
-figure(6)
-hold on
-boundaries = bwboundaries(flip(binaryImage));
-numberOfBoundaries = size(boundaries, 1);
-% for k = 1 : numberOfBoundaries
-% thisBoundary = boundaries{k};
-% plot(thisBoundary(:,2), thisBoundary(:,1), 'g', 'LineWidth', 2);
-arrayfun(@(x) plot(x{:}(:,2),x{:}(:,1)),boundaries)
-xlim ([0, size(binaryImage,1)])
-ylim ([0, size(binaryImage,1)])
-% end
-hold off
+%% Plotting the biggest continuous structure only
+% Find the biggest continuour structure
+boundariesSize =  arrayfun(@(x) size(x{:},1),boundaries);
+% Ouput the structure to thisBoundary variable
+newPolygonVertices = boundaries{boundariesSize == max(boundariesSize)};
+% Changing x to first column and y to second column
+newPolygonVertices = newPolygonVertices(:,[2,1]);
+%% Plot (for testing purpose only)
+% figure(6)
+% hold on
+% plot(newPolygonVertices(:,1), newPolygonVertices(:,2), 'g', 'LineWidth', 2);
+% xlim ([0, size(binaryImage,1)])
+% ylim ([0, size(binaryImage,1)])
+% hold off
+
+%% Setting midpoint to (0,0)
+newPolygonVertices(:,1) = newPolygonVertices(:,1)-round((min(newPolygonVertices(:,1))+max(newPolygonVertices(:,1)))/2);
+
+% Dividing vertices by 100 to since it was 100 times bigger for geometry creation purpose.
+newPolygonVertices = newPolygonVertices./100;
+
+% Change the units to nm
+nm = 10^-9;
+newPolygonVertices = newPolygonVertices.*nm;
+
+%% Testing for structures with holes (for testing purpose only)
+% figure(7)
+% hold on
+% boundaries = bwboundaries(flip(binaryImage));
+% arrayfun(@(x) plot(x{:}(:,2),x{:}(:,1)),boundaries)
+% xlim ([0, size(binaryImage,1)])
+% ylim ([0, size(binaryImage,1)])
+% % end
+% hold off
+
 end
