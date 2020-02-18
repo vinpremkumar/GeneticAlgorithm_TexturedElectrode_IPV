@@ -7,7 +7,7 @@ clc;
 numOfMeshes = 4;
 
 %% Generic Algorithm's paramteres
-maxPopulation       = 10;
+maxPopulation       = 20;
 maxGeneration       = 3;
 mutationProbability = 0.1;
 numOfChildren       = 2;
@@ -57,7 +57,7 @@ while currentGeneration <= maxGeneration
         end
         %% Calculate the Fitness
         for i = 1:maxPopulation
-            fitnessValue(i) = FitnessFunction (population);
+            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
             
             % For testing purpose only
             % fitnessValue(i) = rand(1);
