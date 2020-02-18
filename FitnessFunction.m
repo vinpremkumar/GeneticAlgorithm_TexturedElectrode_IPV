@@ -2,16 +2,16 @@
 % Calculates the fitness of the population (used for Genetic Algorithm)
 %
 % Parameters:
-% Inputs: distanceBetweenGratings - Inter-grating pattern distance
-%         binaryImage             - Meshed polygon represented as a logical
+% Inputs: population.distanceBetweenGratings - Inter-grating pattern distance
+%         population.binaryImage             - Meshed polygon represented as a logical
 %                                   image
 % 
 % Output: fitnessValue            - PCE(experimental) - PCE(simulated)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$$
 
-function fitnessValue = FitnessFunction (distanceBetweenGratings, binaryImage)
+function fitnessValue = FitnessFunction (population)
 % Reconstruct vertices from binary image
-polygonVertices = ReconstructPolygon(binaryImage);
+polygonVertices = ReconstructPolygon(population.binaryImage);
 
 %% Indoor photovoltaic device characteristics
 % doi: https://doi.org/10.1016/j.nanoen.2019.01.061
@@ -60,7 +60,7 @@ CenterOfMass_balanced = nnz(x_centroid >= min(x_vertices(y_vertices == min(y_ver
 if CenterOfMass_balanced == 1
     %% Run FDTD simulation and obtain Jsc,ideal
     % Jsc,ideal obtained through FDTD simulation
-    JscIdeal = FDTDsimulation (distanceBetweenGratings, polygonVertices);
+    JscIdeal = FDTDsimulation (population.distanceBetweenGratings, polygonVertices);
     % Experimental Jsc that is expected
     JscNew = IQE * JscIdeal;
     %% Find new PCE using the Jsc from new structure

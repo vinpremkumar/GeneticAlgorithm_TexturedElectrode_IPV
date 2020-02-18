@@ -7,7 +7,7 @@ clc;
 numOfMeshes = 4;
 
 %% Generic Algorithm's paramteres
-maxPopulation       = 30;
+maxPopulation       = 10;
 maxGeneration       = 3;
 mutationProbability = 0.1;
 numOfChildren       = 2;
@@ -16,32 +16,33 @@ currentGeneration = 0;
 rng('shuffle');
 
 %% Input the radius in which polygon is created (Unit: nm)
-                                          %%%%%%%%%%%%%%%%%%%%%%%
-                                          % Enter circle radius % 
+%%%%%%%%%%%%%%%%%%%%%%%
+% Enter circle radius %
 inputDiameter = 10;                       %   within which the  %
-                                          %  random polygon is  %
-                                          %       created       %
+%  random polygon is  %
+%       created       %
 Radius      = (inputDiameter/2 * 1000)/2; %%%%%%%%%%%%%%%%%%%%%%%
 
 %% Pre-allocation of memory
 x = cell(1, maxPopulation);
 y = cell(1, maxPopulation);
 
-pop_binaryImage  = cell(1, maxPopulation);
-fitnessValue     = zeros(1,maxPopulation);
-popSorted_breed = cell(1,maxPopulation-1);
+population.binaryImage  = cell(1, maxPopulation);
+fitnessValue            = zeros(1,maxPopulation);
+popBreed.binaryImage    = cell(1,maxPopulation-1);
 
 %% If maxGeneration hasn't reached yet, run the simulation
 while currentGeneration <= maxGeneration
-    tic
-    %% Polygon parameter initilization
-    numVerts            = randi([3 14], 1, maxPopulation);
-    vertIndex           = find(numVerts > 12); % Limiting too many rounded structures
-    numVerts(vertIndex) = 35;
-    AspectRatio         = randi([1 5], 1, maxPopulation);
-    dBetweenGratings    = randi([1 10], 1, maxPopulation) * 5;
+    tStart = tic;
     
     if currentGeneration == 0
+        %% Polygon parameter initilization
+        numVerts                    = randi([3 14], 1, maxPopulation);
+        vertIndex                   = find(numVerts > 12); % Limiting too many rounded structures
+        numVerts(vertIndex)         = 35;
+        AspectRatio                 = randi([1 5], 1, maxPopulation);
+        population.dBetweenGratings = randi([1 10], 1, maxPopulation) * 5;
+        
         %% Creating initial population
         for i = 1:maxPopulation
             
@@ -49,21 +50,21 @@ while currentGeneration <= maxGeneration
             [x{i},y{i}] = GenerateRegularPolygon (Radius, numVerts(i), AspectRatio(i));
             
             % Obtain binary image of the polygons
-            pop_binaryImage{i} = MaskPolygon(x{i},y{i},Radius);
+            population.binaryImage{i} = MaskPolygon(x{i},y{i},Radius);
             
             %     figure(i)
             %     imshow(binaryImage{i});
         end
         %% Calculate the Fitness
         for i = 1:maxPopulation
-            fitnessValue(i) = FitnessFunction (dBetweenGratings(i), pop_binaryImage{i});
+            fitnessValue(i) = FitnessFunction (population);
             
             % For testing purpose only
             % fitnessValue(i) = rand(1);
         end
     else
         for i = 2:maxPopulation
-            fitnessValue(i) = FitnessFunction (dBetweenGratings(i), pop_binaryImage{i});
+            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
             
             % For testing purpose only
             % fitnessValue(i) = rand(1);
@@ -75,30 +76,36 @@ while currentGeneration <= maxGeneration
     fmt=['Fitness values:\n' repmat(' %.2f',1,numel(fitnessValue))];
     fprintf(fmt,fitnessValue);
     
-    
     % Rank the population by their fitnessValue (minimization problem)
     [fitnessSorted, fitIndex] = sort(fitnessValue, 'ascend');
     
-    %% Sorting population according to rank
-    % pop_sort is the sorted population
-    popSorted = pop_binaryImage;
-    for i = 1:size(popSorted,2)
-        popSorted{2,i} = fitIndex(i);
+    %% Sorting population (binary image and distance between gratings) according to rank
+    % popSorted.binaryImage is the sorted binaryImage population
+    popSorted.binaryImage = population.binaryImage;
+    for i = 1:size(popSorted.binaryImage,2)
+        popSorted.binaryImage{2,i} = fitIndex(i);
     end
-    popSorted = popSorted';
-    popSorted = sortrows(popSorted,2);
-    popSorted = popSorted';
-    popSorted(2,:) = [];
+    popSorted.binaryImage = popSorted.binaryImage';
+    popSorted.binaryImage = sortrows(popSorted.binaryImage,2);
+    popSorted.binaryImage = popSorted.binaryImage';
+    popSorted.binaryImage(2,:) = [];
+    
+    % popSorted.dBetweenGratings
+    popSorted.dBetweenGratings = population.dBetweenGratings(fitIndex);
     
     %% Cloning the best specimen
-    pop_best = popSorted{1};
+    popBest.binaryImage      = popSorted.binaryImage{1};
+    popBest.dBetweenGratings = popSorted.dBetweenGratings(1);
     
     %% Selection
     % Make population to be used for selection
-    for i = 2 : size(popSorted,2)
-        popSorted_breed{i-1} = popSorted{i};
+    for i = 2 : size(popSorted.binaryImage,2)
+        popBreed.binaryImage{i-1} = popSorted.binaryImage{i};
     end
-    fitnessSorted_breed = fitnessSorted(2:end);
+    
+    popBreed.dBetweenGratings = popSorted.dBetweenGratings(2:end);
+    fitnessBreed              = fitnessSorted(2:end);
+    
     % Even number of population is required to be input for selection
     if(mod(maxPopulation,2))
         nPop_withoutmax = maxPopulation - (numOfChildren - 1);
@@ -107,30 +114,33 @@ while currentGeneration <= maxGeneration
     end
     
     if currentGeneration < maxGeneration
-        nextParents = Selection(fitnessSorted_breed, popSorted_breed, nPop_withoutmax, numOfChildren);
-        
+        nextParents = Selection(fitnessBreed, popBreed, nPop_withoutmax, numOfChildren);
         
         %% Cross-Breeding (Reproduction)
         % Pre-allocate memory
-        newPopulation = cell(1, maxPopulation);
-        CreateChild = @(binaryImage1, binaryImage2, mutationProbability)MergePolygon(binaryImage1, binaryImage2, mutationProbability, numOfMeshes);
-        tempCount = 0;
+        newPopulation.binaryImage      = cell(1, maxPopulation);
+        newPopulation.dBetweenGratings = zeros(1, maxPopulation);
+        % Function handle CreateChild for MergePolygon
+        CreateChild = @(parent1, parent2)MergePolygon(parent1, parent2, mutationProbability, numOfMeshes);
+        tempCount   = 0;
         
         % Choose parents for breeding
-        for i = 1:size(nextParents,2)
-            parent1 = nextParents{i};
-            parent2 = nextParents{end - i + 1};
+        for i = 1:size(nextParents.binaryImage,2)
+            parent1.binaryImage      = nextParents.binaryImage{i};
+            parent1.dBetweenGratings = nextParents.dBetweenGratings(i);
+            parent2.binaryImage      = nextParents.binaryImage{end - i + 1};
+            parent2.dBetweenGratings = nextParents.dBetweenGratings(end - i + 1);
             
             for j=1:1:numOfChildren
                 numOfAttempts = 0;
                 tempCount = tempCount + 1;
                 
                 while true
-                    child = CreateChild(parent1, parent2, mutationProbability);
+                    child = CreateChild(parent1, parent2);
                     
                     % Check for center of gravity
                     % Reconstruct vertices from binary image
-                    polygonVertices = ReconstructPolygon(child);
+                    polygonVertices = ReconstructPolygon(child.binaryImage);
                     % Split vertices of the reconstructed polygon
                     x_vertices = polygonVertices(:,1);
                     y_vertices = polygonVertices(:,2);
@@ -161,28 +171,31 @@ while currentGeneration <= maxGeneration
                         break;
                     end
                 end
-                newPopulation{tempCount+2} = child;
+                newPopulation.binaryImage{tempCount+2}      = child.binaryImage;
+                newPopulation.dBetweenGratings(tempCount+2) = child.dBetweenGratings;
             end
         end
         
         % Input the clone into the newPopulation
-        newPopulation{1} = pop_best;
+        newPopulation.binaryImage{1}      = popBest.binaryImage;
+        newPopulation.dBetweenGratings(1) = popBest.dBetweenGratings;
         
         % Fill the rest of newPopulaion with child of self cross-breeding of pop_best
-        tempIndex = find(~cellfun(@isempty,newPopulation));
+        tempIndex = find(~cellfun(@isempty,newPopulation.binaryImage));
         
         for i = size(tempIndex,2)+1 : maxPopulation
-            parent1 = pop_best;
-            parent2 = pop_best;
+            parent1.binaryImage      = popBest.binaryImage;
+            parent1.dBetweenGratings = popBest.dBetweenGratings;
+            parent2                  = parent1;
             
             numOfAttempts = 0;
             
             while true
-                child = CreateChild(parent1, parent2, mutationProbability);
+                child = CreateChild(parent1, parent2);
                 
                 % Check for center of gravity
                 % Reconstruct vertices from binary image
-                polygonVertices = ReconstructPolygon(child);
+                polygonVertices = ReconstructPolygon(child.binaryImage);
                 % Split vertices of the reconstructed polygon
                 x_vertices = polygonVertices(:,1);
                 y_vertices = polygonVertices(:,2);
@@ -213,20 +226,25 @@ while currentGeneration <= maxGeneration
                     break;
                 end
             end
-            popIndex = find(cellfun('isempty', newPopulation),1);
+            
+            popIndex = find(cellfun('isempty', newPopulation.binaryImage),1);
             if ~isempty(popIndex)
-                newPopulation{popIndex} = child;
+                newPopulation.binaryImage{popIndex}      = child.binaryImage;
+                newPopulation.dBetweenGratings(popIndex) = child.dBetweenGratings;
             end
         end
         
         % Update population for Genetic Algorithm
-        pop_binaryImage = newPopulation;
+        population.binaryImage      = newPopulation.binaryImage;
+        population.dBetweenGratings = newPopulation.dBetweenGratings;
         % Update best population's fitnessValue
         fitnessValue(1) = fitnessSorted(1);
         
     end
     
-    toc
+    % Elapsed time
+    tEnd = toc(tStart);
+    fprintf('\nElapsed time is %d minutes and %f seconds', floor(tEnd/60), rem(tEnd,60));
     
     % Display status in command window
     cprintf('*red',['\n----------Completion (%%) = ', num2str(round((currentGeneration/maxGeneration)*100)),' %%----------\n']);

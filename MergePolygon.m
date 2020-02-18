@@ -6,45 +6,70 @@
 % This is the reproduction/cross-over section for Genetic Algorithm.
 %
 % Parameters:
-% Inputs: binaryImage 1      - First binary image
-%         binaryImage 2      - Second binary image
+% Inputs: parent1            - First binary image and dBetweenGratings
+%         parent2            - Second binary image and dBetweenGratings
 %         mutationProability - In GA, a probability of mutation is
 %                             introduced in the cross over step.
 %                             One of the random binary matrix's value is
 %                             switched if mutationProbability condition is
 %                             satisfied
 %         numOfMeshes        - Decides how the binaryImages are partitioned
-% 
-% Output: mergedImage        - Output binary image of the polygon created 
-%                              from binaryImages 1 and 2
+%
+% Output: mergedImage        - Output binary image and distance between
+%                              gratings of the polygon created from
+%                              binaryImages 1 and 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function mergedImage = MergePolygon(binaryImage1, binaryImage2, mutationProbability, numOfMeshes)
-maxImageSize = max(size(binaryImage1,2), size(binaryImage2,1));
+function mergedImage = MergePolygon(parent1, parent2, mutationProbability, numOfMeshes)
+maxImageSize = max(size(parent1.binaryImage,2), size(parent2.binaryImage,1));
 
 %% MeshSpacing
 spacing = round(linspace(0, maxImageSize, numOfMeshes+1));
 
 %% Obtain both the meshed polygons
-quadrant_PolyMaskValues1 = MeshPolygon(binaryImage1, numOfMeshes);
-quadrant_PolyMaskValues2 = MeshPolygon(binaryImage2, numOfMeshes);
+quadrant_PolyMaskValues1 = MeshPolygon(parent1.binaryImage, numOfMeshes);
+quadrant_PolyMaskValues2 = MeshPolygon(parent2.binaryImage, numOfMeshes);
 
 %% Create a randomized matrix of size NumOfMeshes x NumOfMeshes
-RandomizedMatrix = randi([0 1],numOfMeshes,numOfMeshes);
+RandomizedImageMergerMatrix = randi([0 1],numOfMeshes,numOfMeshes);
+
+%% Find new distance between gratings
+numOfBits = length(de2bi(max(parent1.dBetweenGratings, parent2.dBetweenGratings)));
+parent1_bin.dBetweenGratings = de2bi(round(parent1.dBetweenGratings), numOfBits);
+parent2_bin.dBetweenGratings = de2bi(round(parent2.dBetweenGratings), numOfBits);
+
+% Pre-allocation of memory
+child_bin.dBetweenGratings = zeros(1, numOfBits);
+
+% Random array of 1s and 0s
+% 1 = parent1 and 0 = parent2
+RandomizedGratingDistaneMatrix = randi([0 1], 1 ,numOfBits);
+
+% Find the indexes where matrix value is 1 and 0
+index_dBG1 = find(RandomizedGratingDistaneMatrix == 1);
+index_dBG2 = find(RandomizedGratingDistaneMatrix ~= 1);
+
+child_bin.dBetweenGratings(index_dBG1) = parent1_bin.dBetweenGratings(index_dBG1);
+child_bin.dBetweenGratings(index_dBG2) = parent2_bin.dBetweenGratings(index_dBG2);
 
 %% Mutation
 % Change 1 bit in RadomizedMatrix if rand() < mutationProbability
 if rand() < mutationProbability
-    i = randi([1, numel(RandomizedMatrix)]);
-    RandomizedMatrix(i) = ~RandomizedMatrix(i);
+    i = randi([1, numel(RandomizedImageMergerMatrix)]);
+    RandomizedImageMergerMatrix(i)  = ~RandomizedImageMergerMatrix(i);
+    j = randi([1, numel(RandomizedGratingDistaneMatrix)]);
+    child_bin.dBetweenGratings(j) = ~child_bin.dBetweenGratings(j);
 end
-    
-% Find the indexes where matrix value is 1 and 0
-Index_Image1 = find(RandomizedMatrix == 1);
-Index_Image2 = find(RandomizedMatrix ~= 1);
+
+%% Child dBetweenGratings
+mergedImage.dBetweenGratings           = bi2de(child_bin.dBetweenGratings);
 
 %% Merge Image
-% Initialize a temporary MergedImage size
+% Find the indexes where matrix value is 1 and 0
+Index_Image1 = find(RandomizedImageMergerMatrix == 1);
+Index_Image2 = find(RandomizedImageMergerMatrix ~= 1);
+
+% Initialize a temporary mergedImage.binaryImage size
 temp_MergedImage = cell(numOfMeshes,numOfMeshes);
 
 % Place the Image 1 and 2's binary matrix values into the assigned meshgrid
@@ -59,28 +84,28 @@ end
 
 %% Make binaryImage 1 and 2 same size as maxImageSize
 for i = 1: numOfMeshes*numOfMeshes
-if(size(temp_MergedImage{i},1) ~= maxImageSize)
-    temp_MergedImage{i}(end+1:maxImageSize,end+1:maxImageSize) = 0;
-end
+    if(size(temp_MergedImage{i},1) ~= maxImageSize)
+        temp_MergedImage{i}(end+1:maxImageSize,end+1:maxImageSize) = 0;
+    end
 end
 
-% Initialize final MergedImage
-mergedImage = false(spacing(end),spacing(end));
+% Initialize final mergedImage.binaryImage
+mergedImage.binaryImage = false(spacing(end),spacing(end));
 
 % Merge the Image into one image
 for i = 1:numOfMeshes
     for j = 1:numOfMeshes
         for k = 1:spacing(2)
             for l = 1:spacing(2)
-                mergedImage(k+spacing(i),l+spacing(j)) = temp_MergedImage{i,j}(k,l);
+                mergedImage.binaryImage(k+spacing(i),l+spacing(j)) = temp_MergedImage{i,j}(k,l);
             end
         end
         
     end
 end
 
-%% Plot MergedImage
+%% Plot mergedImage.binaryImage
 % figure(1)
-% imshow(MergedImage)
+% imshow(mergedImage.binaryImage)
 
 end

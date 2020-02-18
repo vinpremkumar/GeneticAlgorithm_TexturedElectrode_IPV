@@ -4,17 +4,17 @@
 %
 % Parameters:
 % Inputs: fitnessSorted_breed - Fitness scores sorted in ascending order
-%         popSorted_breed     - Population sorted in ascending order
+%         popSorted.binaryImage     - Population sorted in ascending order
 %                               according to their fitness value
 %         nPop_withoutBest    - Number of population members excluding the
 %                               best member
 %         numOfChildren       - Number of children resulting from
 %                               cross-over
-% Output: nextParents         - Set of parents used for reproduction for
+% Output: nextParents.binaryImage         - Set of parents used for reproduction for
 %                               the next generation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function nextParents = Selection(fitnessSorted_breed, popSorted_breed, nPop_withoutBest, numOfChildren)
+function nextParents = Selection(fitnessBreed, popBreed, nPop_withoutBest, numOfChildren)
 rng('shuffle');
 %% Tounament selection method:
 % Number of children output from selection
@@ -28,8 +28,9 @@ else
 end
 
 % Pre-allocation of memory
-nextParents   = cell(1, childrenPopulation);
-candidates_pop = cell(1, K);
+nextParents.binaryImage      = cell(1, childrenPopulation);
+nextParents.dBetweenGratings = zeros(1, childrenPopulation);
+candidates_pop.binaryImage   = cell(1, K);
 
 % Selection:
 j = 1;
@@ -37,13 +38,18 @@ for i = 1:childrenPopulation
     % Find 5 random indexes
     candidates = randperm(nPop_withoutBest, K);
     % Find those indexes' fitness and populations
-    candidates_fitness = fitnessSorted_breed(candidates);
+    candidates_fitness = fitnessBreed(candidates);
     for ii = 1:K
-        candidates_pop{ii} = popSorted_breed{candidates(ii)};
+        candidates_pop.binaryImage{ii} = popBreed.binaryImage{candidates(ii)};
     end
+    candidates_pop.dBetweenGratings =  popBreed.dBetweenGratings(candidates);
+    
     % Chose best fitness from candidates
     [~, idx] = min(candidates_fitness);  % minimization problem
-    nextParents{j} = candidates_pop{idx};
+    % Keep the winning parent candidate
+    nextParents.binaryImage{j}      = candidates_pop.binaryImage{idx};
+    nextParents.dBetweenGratings(j) = candidates_pop.dBetweenGratings(idx);
+    
     j = j + 1;
 end
 

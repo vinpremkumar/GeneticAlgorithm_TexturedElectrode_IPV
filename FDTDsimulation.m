@@ -2,23 +2,22 @@
 % Returns the ideal Jsc calculated from FDTD simulation
 %
 % Parameters:
-% Inputs: distanceBetweenGratings - Inter-grating pattern distance
+% Inputs: population.dBetweenGratings - Inter-grating pattern distance
 %         thisBoundary            - Polygon vertices
 % 
 % Output: JscIdeal                - Jsc calculated from FDTD simulation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function JscIdeal = FDTDsimulation (distanceBetweenGratings, imageBoundary)
+function JscIdeal = FDTDsimulation (population)
 warning('off', 'MATLAB:polyshape:repairedBySimplify');
 %% Initialization
 nm = 10^-9;
-distanceBetweenGratings = distanceBetweenGratings*nm;
+population.dBetweenGratings = population.dBetweenGratings*nm;
 
 %% Open Lumerical FDTD session
 FDTD_session=appopen('fdtd', '-hide');
 
-% Set path = matlab file's path
-appputvar(FDTD_session,'path',pwd);
+% Set path = matlab file's pathappputvar(FDTD_session,'path',pwd);
 
 %% Open IPV simulation file
 appevalscript(FDTD_session,'load(path + "\PPDT2FBT_IPV.fsp");');
@@ -31,7 +30,7 @@ appevalscript(FDTD_session, 'set("name","bottomGrating");');
 
 %% Transfer polygon vertices to FDTD session
 % Reduce the number of vertices
-pgon = polyshape(imageBoundary(:,1),imageBoundary(:,2));
+pgon = polyshape(population.imageBoundary(:,1),population.imageBoundary(:,2));
 [Pin(:,1),Pin(:,2)] = boundary(pgon);
 % Send vertices data to FDTD session
 appputvar(FDTD_session,'polygon_ITO',Pin);
@@ -83,7 +82,7 @@ appevalscript(FDTD_session, 'addtogroup("bottomGrating");');
 
 %% Make copies on both sides
 % Offset in x axis for the copies
-dx = abs(max(Pin(:,1)))+abs(min(Pin(:,1))) + distanceBetweenGratings;
+dx = abs(max(Pin(:,1)))+abs(min(Pin(:,1))) + population.dBetweenGratings;
 appputvar(FDTD_session,'distx',dx);
 
 appevalscript(FDTD_session, 'select("bottomGrating");');
