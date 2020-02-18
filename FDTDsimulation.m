@@ -17,7 +17,8 @@ distanceBetweenGratings = distanceBetweenGratings*nm;
 %% Open Lumerical FDTD session
 FDTD_session=appopen('fdtd', '-hide');
 
-% Set path = matlab file's pathappputvar(FDTD_session,'path',pwd);
+% Set path = matlab file's path
+appputvar(FDTD_session,'path',pwd);
 
 %% Open IPV simulation file
 appevalscript(FDTD_session,'load(path + "\PPDT2FBT_IPV.fsp");');
