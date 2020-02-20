@@ -57,17 +57,17 @@ while currentGeneration <= maxGeneration
         end
         %% Calculate the Fitness
         for i = 1:maxPopulation
-            % fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
+            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
             
             % For testing purpose only
-            fitnessValue(i) = rand(1);
+            % fitnessValue(i) = rand(1);
         end
     else
         for i = 2:maxPopulation
-            % fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
+            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
             
             % For testing purpose only
-            fitnessValue(i) = rand(1);
+            % fitnessValue(i) = rand(1);
         end
     end
     
