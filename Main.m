@@ -7,20 +7,20 @@ clc;
 numOfMeshes = 4;
 
 %% Generic Algorithm's paramteres
-maxPopulation       = 20;
-maxGeneration       = 3;
-mutationProbability = 0.1;
+maxPopulation       = 40;
+maxGeneration       = 50;
+mutationProbability = 0.2;
 numOfChildren       = 2;
 
 currentGeneration = 0;
 rng('shuffle');
 
 %% Input the radius in which polygon is created (Unit: nm)
-%%%%%%%%%%%%%%%%%%%%%%%
-% Enter circle radius %
+                                          %%%%%%%%%%%%%%%%%%%%%%%
+                                          % Enter circle radius %
 inputDiameter = 10;                       %   within which the  %
-%  random polygon is  %
-%       created       %
+                                          %  random polygon is  %
+                                          %       created       %
 Radius      = (inputDiameter/2 * 1000)/2; %%%%%%%%%%%%%%%%%%%%%%%
 
 %% Pre-allocation of memory
@@ -57,17 +57,17 @@ while currentGeneration <= maxGeneration
         end
         %% Calculate the Fitness
         for i = 1:maxPopulation
-            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
+            % fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
             
             % For testing purpose only
-            % fitnessValue(i) = rand(1);
+            fitnessValue(i) = rand(1);
         end
     else
         for i = 2:maxPopulation
-            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
+            % fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
             
             % For testing purpose only
-            % fitnessValue(i) = rand(1);
+            fitnessValue(i) = rand(1);
         end
     end
     
@@ -96,6 +96,17 @@ while currentGeneration <= maxGeneration
     %% Cloning the best specimen
     popBest.binaryImage      = popSorted.binaryImage{1};
     popBest.dBetweenGratings = popSorted.dBetweenGratings(1);
+    
+    %% Save the best specimen
+    path = pwd;
+    
+    filenamePoly            = strcat(path,'\Results\Polygons\Gen',int2str(currentGeneration),'.txt');
+    polyBest                = ReconstructPolygon(popBest.binaryImage);
+    save(filenamePoly, 'polyBest', '-ascii');
+    
+    filenamedBetweenGratings = strcat(path,'\Results\dBetweenGratings\Gen',int2str(currentGeneration),'.txt');
+    dBetweenGratingsBest     = popBest.dBetweenGratings;
+    save(filenamedBetweenGratings, 'dBetweenGratingsBest' , '-ascii');
     
     %% Selection
     % Make population to be used for selection
