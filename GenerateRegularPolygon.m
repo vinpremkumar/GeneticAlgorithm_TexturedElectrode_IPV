@@ -24,10 +24,15 @@ angle(2:numVerts+1) = angleSteps(1:numVerts);
 angle = cumsum(angle); % Incrementing angle per vertex
 angle(end) = []; % We wouldnt need the last angle since it is a closed polygon with a flat base
 
-% Using polar cordinate equation for an ellipse
+%% Using polar cordinate equation for an ellipse
 % The AspectRatio variables gives the ratio of a/b where a and b are vertical axis and horizontal radius lengths.
-x_vertices = round((1/AspectRatio)*(aveRadius*cos(angle))); 
-y_vertices = round(aveRadius*sin(angle));
+if AspectRatio > 1
+    x_vertices = round((1/AspectRatio)*(aveRadius*cos(angle)));
+    y_vertices = round(aveRadius*sin(angle));
+else
+    x_vertices = round((aveRadius*cos(angle)));
+    y_vertices = round(AspectRatio*aveRadius*sin(angle));
+end
     
 % Close the polygon by making its end vertex = start vertex    
 x_vertices(end+1) = x_vertices(1);
