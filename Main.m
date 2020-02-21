@@ -40,7 +40,7 @@ while currentGeneration <= maxGeneration
         numVerts                    = randi([3 14], 1, maxPopulation);
         vertIndex                   = find(numVerts > 12); % Limiting too many rounded structures
         numVerts(vertIndex)         = 35;
-        AspectRatio                 = randi([1 5], 1, maxPopulation);
+        AspectRatio                 = randi([1 12], 1, maxPopulation)*25/100;
         population.dBetweenGratings = randi([1 10], 1, maxPopulation) * 5;
         
         %% Creating initial population
