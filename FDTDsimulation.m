@@ -60,7 +60,7 @@ appevalscript(FDTD_session, 'PFN_yspan = get("y span");');
 PFN_thickness = appgetvar(FDTD_session,'PFN_yspan');
 
 % Make polybuffer for the PFN layer
-Pout = polybuffer(Pin,'lines',PFN_thickness,'JointType','miter','MiterLimit', 3);
+Pout = polybuffer(Pin,'lines',PFN_thickness,'JointType','square');
 boundaryNew = Pout.Vertices;
 boundaryNew = reducepoly(boundaryNew);
 
@@ -149,7 +149,7 @@ appevalscript(FDTD_session, 'MoOx_yspan = get("y span");');
 MoOx_thickness = appgetvar(FDTD_session,'MoOx_yspan');
 
 % Make polybuffer for the MoOx layer
-Pout = polybuffer(Pin,'lines',MoOx_thickness,'JointType','miter','MiterLimit', 3);
+Pout = polybuffer(Pin,'lines',MoOx_thickness,'JointType','square');
 clear boundaryNew;
 boundaryNew = Pout.Vertices;
 boundaryNew = reducepoly(boundaryNew);
