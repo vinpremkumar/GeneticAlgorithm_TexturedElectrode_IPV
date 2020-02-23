@@ -15,7 +15,7 @@ nm = 10^-9;
 dBetweenGratings = dBetweenGratings*nm;
 
 %% Open Lumerical FDTD session
-FDTD_session=appopen('fdtd', '-hide');
+FDTD_session=appopen('fdtd');
 
 % Set path = matlab file's path
 appputvar(FDTD_session,'path',pwd);
@@ -33,6 +33,7 @@ appevalscript(FDTD_session, 'set("name","bottomGrating");');
 % Reduce the number of vertices
 pgon = polyshape(polygonVertices(:,1),polygonVertices(:,2));
 Pin = pgon.Vertices;
+Pin = reducepoly(Pin);
 % Send vertices data to FDTD session
 appputvar(FDTD_session,'polygon_ITO',Pin);
 
@@ -61,6 +62,7 @@ PFN_thickness = appgetvar(FDTD_session,'PFN_yspan');
 % Make polybuffer for the PFN layer
 Pout = polybuffer(Pin,'lines',PFN_thickness,'JointType','miter','MiterLimit', 3);
 boundaryNew = Pout.Vertices;
+boundaryNew = reducepoly(boundaryNew);
 
 % Transfer polybuffer vertices to FDTD session
 appputvar(FDTD_session,'polygon_PFN',boundaryNew);
@@ -150,6 +152,7 @@ MoOx_thickness = appgetvar(FDTD_session,'MoOx_yspan');
 Pout = polybuffer(Pin,'lines',MoOx_thickness,'JointType','miter','MiterLimit', 3);
 clear boundaryNew;
 boundaryNew = Pout.Vertices;
+boundaryNew = reducepoly(boundaryNew);
 
 % Transfer polybuffer vertices to FDTD session
 appputvar(FDTD_session,'polygon_MoOx',boundaryNew);
