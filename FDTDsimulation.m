@@ -32,7 +32,7 @@ appevalscript(FDTD_session, 'set("name","bottomGrating");');
 %% Transfer polygon vertices to FDTD session
 % Reduce the number of vertices
 pgon = polyshape(polygonVertices(:,1),polygonVertices(:,2));
-[Pin(:,1),Pin(:,2)] = boundary(pgon);
+Pin = pgon.Vertices;
 % Send vertices data to FDTD session
 appputvar(FDTD_session,'polygon_ITO',Pin);
 
@@ -60,7 +60,7 @@ PFN_thickness = appgetvar(FDTD_session,'PFN_yspan');
 
 % Make polybuffer for the PFN layer
 Pout = polybuffer(Pin,'lines',PFN_thickness,'JointType','miter','MiterLimit', 3);
-[boundaryNew(:,1),boundaryNew(:,2)] = boundary(Pout);
+boundaryNew = Pout.Vertices;
 
 % Transfer polybuffer vertices to FDTD session
 appputvar(FDTD_session,'polygon_PFN',boundaryNew);
@@ -148,8 +148,8 @@ MoOx_thickness = appgetvar(FDTD_session,'MoOx_yspan');
 
 % Make polybuffer for the MoOx layer
 Pout = polybuffer(Pin,'lines',MoOx_thickness,'JointType','miter','MiterLimit', 3);
-clear Boundarynew;
-[boundaryNew(:,1),boundaryNew(:,2)] = boundary(Pout);
+clear boundaryNew;
+boundaryNew = Pout.Vertices;
 
 % Transfer polybuffer vertices to FDTD session
 appputvar(FDTD_session,'polygon_MoOx',boundaryNew);
