@@ -93,10 +93,19 @@ while currentGeneration <= maxGeneration
     % popSorted.dBetweenGratings
     popSorted.dBetweenGratings = population.dBetweenGratings(fitIndex);
     
-    %% Cloning the best specimen
+    %% Cloninng the best specimen as a backup of best specimen
     popBest.binaryImage      = popSorted.binaryImage{1};
     popBest.dBetweenGratings = popSorted.dBetweenGratings(1);
     
+    %% Replacing the worst specimen by the cloned best specimen
+    popSorted.binaryImage{end}      = [];
+    popSorted.binaryImage{end}      = popBest.binaryImage;
+    
+    popSorted.dBetweenGratings(end) = popBest.dBetweenGratings;
+    % Shifting the last element to the first since it was replaced by the best specimen
+    popSorted.binaryImage           = circshift(popSorted.binaryImage,[2,1]);
+    popSorted.dBetweenGratings      = circshift(popSorted.dBetweenGratings,[2,1]);
+     
     %% Save the best specimen
     path = pwd;
     
