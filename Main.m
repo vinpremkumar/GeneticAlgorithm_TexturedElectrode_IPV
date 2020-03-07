@@ -7,8 +7,8 @@ clc;
 numOfMeshes = 4;
 
 %% Generic Algorithm's paramteres
-maxPopulation       = 40;
-maxGeneration       = 50;
+maxPopulation       = 50;
+maxGeneration       = 100;
 mutationProbability = 0.2;
 numOfChildren       = 2;
 
@@ -18,7 +18,7 @@ rng('shuffle');
 %% Input the radius in which polygon is created (Unit: nm)
                                           %%%%%%%%%%%%%%%%%%%%%%%
                                           % Enter circle radius %
-inputDiameter = 10;                       %   within which the  %
+inputDiameter = 30;                       %   within which the  %
                                           %  random polygon is  %
                                           %       created       %
 Radius      = (inputDiameter/2 * 1000)/2; %%%%%%%%%%%%%%%%%%%%%%%
