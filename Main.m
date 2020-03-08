@@ -9,7 +9,7 @@ numOfMeshes = 4;
 %% Generic Algorithm's paramteres
 maxPopulation       = 50;
 maxGeneration       = 100;
-mutationProbability = 0.2;
+mutationProbability = 0.1;
 numOfChildren       = 2;
 
 currentGeneration = 0;
@@ -18,7 +18,7 @@ rng('shuffle');
 %% Input the radius in which polygon is created (Unit: nm)
                                           %%%%%%%%%%%%%%%%%%%%%%%
                                           % Enter circle radius %
-inputDiameter = 30;                       %   within which the  %
+inputDiameter = 50;                       %   within which the  %
                                           %  random polygon is  %
                                           %       created       %
 Radius      = (inputDiameter/2 * 1000)/2; %%%%%%%%%%%%%%%%%%%%%%%
@@ -141,7 +141,7 @@ while currentGeneration <= maxGeneration
         newPopulation.binaryImage      = cell(1, maxPopulation);
         newPopulation.dBetweenGratings = zeros(1, maxPopulation);
         % Function handle CreateChild for MergePolygon
-        CreateChild = @(parent1, parent2)MergePolygon(parent1, parent2, mutationProbability, numOfMeshes);
+        CreateChild = @(parent1, parent2)MergePolygon(parent1, parent2, mutationProbability, numOfMeshes, Radius);
         tempCount   = 0;
         
         % Choose parents for breeding
@@ -191,8 +191,8 @@ while currentGeneration <= maxGeneration
                         break;
                     end
                 end
-                newPopulation.binaryImage{tempCount+2}      = child.binaryImage;
-                newPopulation.dBetweenGratings(tempCount+2) = child.dBetweenGratings;
+                newPopulation.binaryImage{tempCount+1}      = child.binaryImage;
+                newPopulation.dBetweenGratings(tempCount+1) = child.dBetweenGratings;
             end
         end
         

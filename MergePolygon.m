@@ -20,7 +20,8 @@
 %                              binaryImages 1 and 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function mergedImage = MergePolygon(parent1, parent2, mutationProbability, numOfMeshes)
+function mergedImage = MergePolygon(parent1, parent2, mutationProbability, numOfMeshes, Radius)
+yes_mutation = 0;
 maxImageSize = max(size(parent1.binaryImage,2), size(parent2.binaryImage,1));
 
 %% MeshSpacing
@@ -55,10 +56,23 @@ child_bin.dBetweenGratings(index_dBG2) = parent2_bin.dBetweenGratings(index_dBG2
 %% Mutation
 % Change 1 bit in RadomizedMatrix if rand() < mutationProbability
 if rand() < mutationProbability
+    yes_mutation = 1;
+    
     i = randi([1, numel(RandomizedImageMergerMatrix)]);
-    RandomizedImageMergerMatrix(i)  = ~RandomizedImageMergerMatrix(i);
+    RandomizedImageMergerMatrix(i)  = RandomizedImageMergerMatrix(i)+2;
+    
     j = randi([1, numel(RandomizedGratingDistaneMatrix)]);
     child_bin.dBetweenGratings(j) = ~child_bin.dBetweenGratings(j);
+    
+    % Generate a new random polygon to use for mutation gene
+    numVerts                = randi([3 14], 1);
+    if numVerts > 12 % Limiting too many rounded structures
+        numVerts            = 35;
+    end
+    AspectRatio             = randi([1 12], 1)*25/100;
+    [x, y]                  = GenerateRegularPolygon (Radius, numVerts, AspectRatio);
+    mutantBinaryImage = MaskPolygon(x,y,Radius);
+    quadrant_MutantPolyMask = MeshPolygon(mutantBinaryImage, numOfMeshes);
 end
 
 %% Child dBetweenGratings
@@ -66,26 +80,27 @@ mergedImage.dBetweenGratings           = bi2de(child_bin.dBetweenGratings);
 
 %% Merge Image
 % Find the indexes where matrix value is 1 and 0
-Index_Image1 = find(RandomizedImageMergerMatrix == 1);
-Index_Image2 = find(RandomizedImageMergerMatrix ~= 1);
-
+index_Image1          = find(RandomizedImageMergerMatrix == 1);
+index_Image2          = find(RandomizedImageMergerMatrix == 0);
+if yes_mutation == 1
+    index_MutantImage = find(RandomizedImageMergerMatrix  > 1);
+end
 % Initialize a temporary mergedImage.binaryImage size
 temp_MergedImage = cell(numOfMeshes,numOfMeshes);
 
 % Place the Image 1 and 2's binary matrix values into the assigned meshgrid
 % according to the RandomizedMatrix
-for i = 1: size(Index_Image1,1)
-    temp_MergedImage{Index_Image1(i)} =  quadrant_PolyMaskValues1{Index_Image1(i)};
+for i = 1: size(index_Image1,1)
+    temp_MergedImage{index_Image1(i)} =  quadrant_PolyMaskValues1{index_Image1(i)};
 end
 
-for i = 1: size(Index_Image2,1)
-    temp_MergedImage{Index_Image2(i)} =  quadrant_PolyMaskValues2{Index_Image2(i)};
+for i = 1: size(index_Image2,1)
+    temp_MergedImage{index_Image2(i)} =  quadrant_PolyMaskValues2{index_Image2(i)};
 end
 
-%% Make binaryImage 1 and 2 same size as maxImageSize
-for i = 1: numOfMeshes*numOfMeshes
-    if(size(temp_MergedImage{i},1) ~= maxImageSize)
-        temp_MergedImage{i}(end+1:maxImageSize,end+1:maxImageSize) = 0;
+if yes_mutation == 1
+    for i = 1: size(index_MutantImage,1)
+        temp_MergedImage{index_MutantImage(i)} =  quadrant_MutantPolyMask{index_MutantImage(i)};
     end
 end
 
