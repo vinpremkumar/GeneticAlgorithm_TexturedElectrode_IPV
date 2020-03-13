@@ -122,7 +122,7 @@ end
 
 
 %% Plot mergedImage.binaryImage
-figure(1)
-imshow(mergedImage.binaryImage)
+% figure(1)
+% imshow(mergedImage.binaryImage)
 
 end
