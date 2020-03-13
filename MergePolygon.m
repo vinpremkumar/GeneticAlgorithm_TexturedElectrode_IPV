@@ -14,6 +14,8 @@
 %                             switched if mutationProbability condition is
 %                             satisfied
 %         numOfMeshes        - Decides how the binaryImages are partitioned
+%         Radius             - Radius of the circle within which the random
+%                              polygon is generated
 %
 % Output: mergedImage        - Output binary image and distance between
 %                              gratings of the polygon created from
@@ -108,19 +110,19 @@ end
 mergedImage.binaryImage = false(spacing(end),spacing(end));
 
 % Merge the Image into one image
+spacingDistance = spacing(2);
 for i = 1:numOfMeshes
+    xSpacing = spacing(i);
     for j = 1:numOfMeshes
-        for k = 1:spacing(2)
-            for l = 1:spacing(2)
-                mergedImage.binaryImage(k+spacing(i),l+spacing(j)) = temp_MergedImage{i,j}(k,l);
-            end
-        end
-        
+        ySpacing = spacing(j);
+        [indexX,indexY]=meshgrid(1:spacingDistance,1:spacingDistance);
+        mergedImage.binaryImage(indexX(1,:)+xSpacing,indexY(:,1)+ySpacing) = temp_MergedImage{i,j};
     end
 end
 
+
 %% Plot mergedImage.binaryImage
-% figure(1)
-% imshow(mergedImage.binaryImage)
+figure(1)
+imshow(mergedImage.binaryImage)
 
 end
