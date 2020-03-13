@@ -71,13 +71,13 @@ while currentGeneration <= maxGeneration
         end
     end
     
-    % Display currentGeneration and fitnessValue in command window
-    fprintf('Current Generation = %d\n', currentGeneration);
-    fmt=['Fitness values:\n' repmat(' %.2f',1,numel(fitnessValue))];
-    fprintf(fmt,fitnessValue);
-    
     % Rank the population by their fitnessValue (minimization problem)
     [fitnessSorted, fitIndex] = sort(fitnessValue, 'ascend');
+    
+    % Display currentGeneration and fitnessValue in command window
+    fprintf('Current Generation = %d\n', currentGeneration);
+    fmt=['Fitness values:\n' repmat(' %.2f',1,numel(fitnessSorted))];
+    fprintf(fmt,fitnessSorted);
     
     %% Sorting population (binary image and distance between gratings) according to rank
     % popSorted.binaryImage is the sorted binaryImage population
