@@ -7,8 +7,8 @@ clc;
 numOfMeshes = 4;
 
 %% Generic Algorithm's paramteres
-maxPopulation       = 50;
-maxGeneration       = 100;
+maxPopulation       = 40;
+maxGeneration       = 50;
 mutationProbability = 0.1;
 numOfChildren       = 2;
 
@@ -21,7 +21,7 @@ rng('shuffle');
 inputDiameter = 50;                       %   within which the  %
                                           %  random polygon is  %
                                           %       created       %
-Radius      = (inputDiameter/2 * 1000)/2; %%%%%%%%%%%%%%%%%%%%%%%
+Radius      = (inputDiameter/2 * 100); %%%%%%%%%%%%%%%%%%%%%%%
 
 %% Pre-allocation of memory
 x = cell(1, maxPopulation);
@@ -71,11 +71,12 @@ while currentGeneration <= maxGeneration
         end
     end
     
+    % Display currentGeneration and fitnessValue in command window
+    fprintf('Current Generation = %d\n', currentGeneration);
+        
     % Rank the population by their fitnessValue (minimization problem)
     [fitnessSorted, fitIndex] = sort(fitnessValue, 'ascend');
     
-    % Display currentGeneration and fitnessValue in command window
-    fprintf('Current Generation = %d\n', currentGeneration);
     fmt=['Fitness values:\n' repmat(' %.2f',1,numel(fitnessSorted))];
     fprintf(fmt,fitnessSorted);
     

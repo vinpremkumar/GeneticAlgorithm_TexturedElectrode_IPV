@@ -76,15 +76,15 @@ W = meshgrid4d(4,x,y,z,f*2*pi); # create 4D matrix of f
 SP = meshgrid4d(4,x,y,z,sourcepower(f)); # 4D matrix of source power
 
 # calculate spatial absorption from each field_act_L component separately (watts/m^3)
-if (havedata("index_act_L","index_act_L_x")) {
-Pabs_x = 0.5*eps0*W*(abs(getdata("field_act_L","Ex",1))^2*imag(getdata("index_act_L","index_act_L_x",1)^2));
-Pabs_y = 0.5*eps0*W*(abs(getdata("field_act_L","Ey",1))^2*imag(getdata("index_act_L","index_act_L_y",1)^2));
+if (havedata("index_act_L","index_x")) {
+Pabs_x = 0.5*eps0*W*(abs(getdata("field_act_L","Ex",1))^2*imag(getdata("index_act_L","index_x",1)^2));
+Pabs_y = 0.5*eps0*W*(abs(getdata("field_act_L","Ey",1))^2*imag(getdata("index_act_L","index_y",1)^2));
 } else {
 Pabs_x = matrix(Nx,Ny,Nz,Nf);
 Pabs_y = matrix(Nx,Ny,Nz,Nf);
 }
-if (havedata("index_act_L","index_act_L_z")) {
-Pabs_z = 0.5*eps0*W*(abs(getdata("field_act_L","Ez",1))^2*imag(getdata("index_act_L","index_act_L_z",1)^2));
+if (havedata("index_act_L","index_z")) {
+Pabs_z = 0.5*eps0*W*(abs(getdata("field_act_L","Ez",1))^2*imag(getdata("index_act_L","index_z",1)^2));
 } else {
 Pabs_z = matrix(Nx,Ny,Nz,Nf);
 }
@@ -144,7 +144,35 @@ gx=0; gy=0; gz=0; # clear variables, to free memory
 # Calculate the generation rate by integrating 'g' over wavelength
 # The generate rate is the number of electron hole pairs per unit volume per second. (units: 1/m^3/s)
 G_matrix = integrate2(g*nm,4,lam_nm);
+G_mat_temp = G_matrix;
 g=0;
+
+## Setting generation rate to areas outside active layer
+material="PPDT2FBTPC71BM";   # material 
+min_f=c/lam_nm(end,1)*e-9;      # source min frequency
+max_f=c/lam_nm(1,1)*e-9;      # source max frequency
+IIy = getdata("index_act_L","index_y",1);
+
+# get FDTD fit of experimental data
+n_fdtd=real(getfdtdindex(material,max_f,min_f,max_f));
+
+## rounding to lower integer to remove noise
+n_fdtd = floor(100*n_fdtd);
+temp_v1 = floor(100*real(IIy(:,:,1,1)));
+# Finding the matrix indices which should be made 0;
+temp_v2 = abs(temp_v1 - n_fdtd) < 2;
+matlabput(temp_v2);
+matlab("temp_v3 = double(bwareaopen(temp_v2, 2));");
+matlabget(temp_v3);
+
+removeNonActiveLayerPhotons = G_matrix;
+removeNonActiveLayerPhotons(:,:,1) = temp_v3;
+G_matrix = G_matrix * removeNonActiveLayerPhotons;
+
+temp_v1 = 0;
+temp_v2 = 0;
+temp_v3 = 0;
+removeNonActiveLayerPhotons = 0;
 # end generation rate calculation
 
 ##########################################################

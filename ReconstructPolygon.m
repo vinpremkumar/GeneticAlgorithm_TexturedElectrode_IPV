@@ -37,6 +37,11 @@ newPolygonVertices = newPolygonVertices./100;
 nm = 10^-9;
 newPolygonVertices = newPolygonVertices.*nm;
 
+% % Reducing the number of vertices using polyshape
+% polyshapePolygon = polyshape(PolygonVertices(:,1), PolygonVertices(:,2));
+% 
+% newPolygonVertices = polyshapePolygon.Vertices;
+
 %% Testing for structures with holes (for testing purpose only)
 % figure(7)
 % hold on
