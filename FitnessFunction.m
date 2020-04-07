@@ -9,9 +9,9 @@
 % Output: fitnessValue            - PCE(experimental) - PCE(simulated)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$$
 
-function fitnessValue = FitnessFunction (dBetweenGratings, binaryImage)
+function fitnessValue = FitnessFunction (dBetweenGratings, binaryImage, sizingFactor)
 % Reconstruct vertices from binary image
-polygonVertices = ReconstructPolygon(binaryImage);
+polygonVertices = ReconstructPolygon(binaryImage, sizingFactor);
 
 %% Indoor photovoltaic device characteristics
 % doi: https://doi.org/10.1016/j.nanoen.2019.01.061
@@ -20,12 +20,12 @@ polygonVertices = ReconstructPolygon(binaryImage);
 Voc = 0.587;                                        %    Change these   %
 % Fill Factor. Units: (%)                           %     values for    %
 FF = 65.2;                                          %     using this    %
-% Short circuit current density. Units: (uA/cm2)    %      code for     %
+% Short circuit current density. Units: (A/m2)      %      code for     %
 JscExp = 117.1;                                     %     different     %
 % Power conversion efficiency. Units: (%)           %     solar cell    %
 PCEexp = 16;                                        %     structures    %
-% Simulated Jsc from FDTD. Units: (uA/cm2)          %                   %
-JscSim = 155.116;                                   %%%%%%%%%%%%%%%%%%%%%
+% Simulated Jsc from FDTD. Units: (A/m2)            %                   %
+JscSim = 152.327;                                   %%%%%%%%%%%%%%%%%%%%%
 
 %% Calculate other parameters from experimental values
 % Internal Quantum Efficiency of the active layer
@@ -60,7 +60,7 @@ CenterOfMass_balanced = nnz(x_centroid >= min(x_vertices(y_vertices == min(y_ver
 if CenterOfMass_balanced == 1
     %% Run FDTD simulation and obtain Jsc,ideal
     % Jsc,ideal obtained through FDTD simulation
-    JscIdeal = FDTDsimulation (dBetweenGratings, polygonVertices);
+    JscIdeal = FDTDsimulation_2FBT_complementaryGrating(dBetweenGratings, polygonVertices);
     % Experimental Jsc that is expected
     JscNew = IQE * JscIdeal;
     %% Find new PCE using the Jsc from new structure

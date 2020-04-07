@@ -7,8 +7,8 @@ clc;
 numOfMeshes = 4;
 
 %% Generic Algorithm's paramteres
-maxPopulation       = 40;
-maxGeneration       = 50;
+maxPopulation       = 30;
+maxGeneration       = 10;
 mutationProbability = 0.1;
 numOfChildren       = 2;
 
@@ -16,12 +16,12 @@ currentGeneration = 0;
 rng('shuffle');
 
 %% Input the radius in which polygon is created (Unit: nm)
-                                          %%%%%%%%%%%%%%%%%%%%%%%
-                                          % Enter circle radius %
-inputDiameter = 50;                       %   within which the  %
-                                          %  random polygon is  %
-                                          %       created       %
-Radius      = (inputDiameter/2 * 100); %%%%%%%%%%%%%%%%%%%%%%%
+                                                     %%%%%%%%%%%%%%%%%%%%%%%
+                                                     % Enter circle radius %
+inputDiameter = 200;                                 %   within which the  %
+                                                     %  random polygon is  %
+sizingFactor  = 10;                                  %       created       %
+Radius        = ((inputDiameter/2) * sizingFactor);  %%%%%%%%%%%%%%%%%%%%%%%
 
 %% Pre-allocation of memory
 x = cell(1, maxPopulation);
@@ -41,7 +41,7 @@ while currentGeneration <= maxGeneration
         vertIndex                   = find(numVerts > 12); % Limiting too many rounded structures
         numVerts(vertIndex)         = 35;
         AspectRatio                 = randi([1 12], 1, maxPopulation)*25/100;
-        population.dBetweenGratings = randi([1 10], 1, maxPopulation) * 5;
+        population.dBetweenGratings = randi([1 40], 1, maxPopulation) * 50;
         
         %% Creating initial population
         for i = 1:maxPopulation
@@ -57,14 +57,14 @@ while currentGeneration <= maxGeneration
         end
         %% Calculate the Fitness
         for i = 1:maxPopulation
-            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
+            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i}, sizingFactor);
             
             % For testing purpose only
             % fitnessValue(i) = rand(1);
         end
     else
         for i = 2:maxPopulation
-            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i});
+            fitnessValue(i) = FitnessFunction (population.dBetweenGratings(i), population.binaryImage{i}, sizingFactor);
             
             % For testing purpose only
             % fitnessValue(i) = rand(1);
@@ -111,7 +111,7 @@ while currentGeneration <= maxGeneration
     path = pwd;
     
     filenamePoly            = strcat(path,'\Results\Polygons\Gen',int2str(currentGeneration),'.txt');
-    polyBest                = ReconstructPolygon(popBest.binaryImage);
+    polyBest                = ReconstructPolygon(popBest.binaryImage, sizingFactor);
     save(filenamePoly, 'polyBest', '-ascii');
     
     filenamedBetweenGratings = strcat(path,'\Results\dBetweenGratings\Gen',int2str(currentGeneration),'.txt');
@@ -161,7 +161,7 @@ while currentGeneration <= maxGeneration
                     
                     % Check for center of gravity
                     % Reconstruct vertices from binary image
-                    polygonVertices = ReconstructPolygon(child.binaryImage);
+                    polygonVertices = ReconstructPolygon(child.binaryImage, sizingFactor);
                     % Split vertices of the reconstructed polygon
                     x_vertices = polygonVertices(:,1);
                     y_vertices = polygonVertices(:,2);
@@ -216,7 +216,7 @@ while currentGeneration <= maxGeneration
                 
                 % Check for center of gravity
                 % Reconstruct vertices from binary image
-                polygonVertices = ReconstructPolygon(child.binaryImage);
+                polygonVertices = ReconstructPolygon(child.binaryImage, sizingFactor);
                 % Split vertices of the reconstructed polygon
                 x_vertices = polygonVertices(:,1);
                 y_vertices = polygonVertices(:,2);
