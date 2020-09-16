@@ -7,8 +7,8 @@ clc;
 numOfMeshes = 4;
 
 %% Generic Algorithm's paramteres
-maxPopulation       = 30;
-maxGeneration       = 10;
+maxPopulation       = 50;
+maxGeneration       = 100;
 mutationProbability = 0.1;
 numOfChildren       = 2;
 
@@ -18,7 +18,7 @@ rng('shuffle');
 %% Input the radius in which polygon is created (Unit: nm)
                                                      %%%%%%%%%%%%%%%%%%%%%%%
                                                      % Enter circle radius %
-inputDiameter = 200;                                 %   within which the  %
+inputDiameter = 350;                                 %   within which the  %
                                                      %  random polygon is  %
 sizingFactor  = 10;                                  %       created       %
 Radius        = ((inputDiameter/2) * sizingFactor);  %%%%%%%%%%%%%%%%%%%%%%%
@@ -280,3 +280,5 @@ end
 cprintf('*[0.4,0.8,0.5]', '----------Completion (%%) = 100 %%----------\n');
 cprintf('*blue', 'Simulation completed\n');
 fprintf("-----------------------------------------------------------------------------------------\n\n");
+
+diary outputfile

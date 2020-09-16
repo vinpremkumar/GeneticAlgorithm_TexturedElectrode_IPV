@@ -8,21 +8,21 @@
 % Output: JscIdeal                - Jsc calculated from FDTD simulation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function JscIdeal = FDTDsimulation_2FBT_complementaryGrating (dBetweenGratings, polygonVertices)
+function JscIdeal = FDTDsimulation_perovskite (dBetweenGratings, polygonVertices)
 warning('off', 'MATLAB:polyshape:repairedBySimplify');
 %% Initialization
 nm = 10^-9;
 dBetweenGratings = dBetweenGratings*nm;
 
 %% Open Lumerical FDTD session
-FDTD_session=appopen('fdtd', '-hide');
-% FDTD_session=appopen('fdtd');
+FDTD_session=appopen('fdtd');
+% FDTD_session=appopen('fdtd', '-hide');
 
 % Set path = matlab file's path
 appputvar(FDTD_session,'path',pwd);
 
 %% Open IPV simulation file
-appevalscript(FDTD_session,'load(path + "\PPDT2FBT_IPV.fsp");');
+appevalscript(FDTD_session,'load(path + "\MAPbI3_IPV.fsp");');
 appevalscript(FDTD_session, 'switchtolayout;');
 
 %% BOTTOM GRATING STRUCTURE:
@@ -42,32 +42,32 @@ PinOpen = reducepoly(PinOpen);
 % Close PinOpen polygon
 [Pin(:,1), Pin(:,2)] = closePolygonParts(PinOpen(:,1), PinOpen(:,2));
 % Send vertices data to FDTD session
-appputvar(FDTD_session,'polygon_ITO',Pin);
+appputvar(FDTD_session,'polygon_FTO',Pin);
 
 %% Create the polygon in the FDTD session
 appevalscript(FDTD_session, 'addpoly;');
-appevalscript(FDTD_session, 'set("vertices",polygon_ITO);');
+appevalscript(FDTD_session, 'set("vertices",polygon_FTO);');
 
 % Position and name the polygon
 appevalscript(FDTD_session, 'set("x",0);');
 appevalscript(FDTD_session, 'set("y",0);');
 appevalscript(FDTD_session, 'set("z",0);');
-appevalscript(FDTD_session, 'set("name", "ITO_pattern");');
+appevalscript(FDTD_session, 'set("name", "FTO_pattern");');
 
-% Set material to ITO
-appevalscript(FDTD_session, 'set("material","ITO");');
+% Set material to FTO
+appevalscript(FDTD_session, 'set("material","FTO");');
 
 % Move to bottomGrating structure group
 appevalscript(FDTD_session, 'addtogroup("bottomGrating");');
 
-%% Make PFN surface patterned
-% Get PFN thickness from simulation file
-appevalscript(FDTD_session, 'select("PFN");');
-appevalscript(FDTD_session, 'PFN_yspan = get("y span");');
-PFN_thickness = appgetvar(FDTD_session,'PFN_yspan');
+%% Make TiO2 surface patterned
+% Get TiO2 thickness from simulation file
+appevalscript(FDTD_session, 'select("TiO2");');
+appevalscript(FDTD_session, 'TiO2_yspan = get("y span");');
+TiO2_thickness = appgetvar(FDTD_session,'TiO2_yspan');
 
-% Make polybuffer for the PFN layer
-Pout = polybuffer(PinOpen,'lines',PFN_thickness);
+% Make polybuffer for the TiO2 layer
+Pout = polybuffer(PinOpen,'lines',TiO2_thickness);
 Pout = rmholes(Pout);  % Remove holes
 boundaryNew_temp = Pout.Vertices;
 boundaryNew_temp = rmmissing(boundaryNew_temp);
@@ -79,20 +79,20 @@ boundaryNewOpen = reducepoly(boundaryNewOpen);
 [boundaryNew(:,1), boundaryNew(:,2)] = closePolygonParts(boundaryNewOpen(:,1), boundaryNewOpen(:,2));
 
 % Transfer polybuffer vertices to FDTD session
-appputvar(FDTD_session,'polygon_PFN',boundaryNew);
+appputvar(FDTD_session,'polygon_TiO2',boundaryNew);
 
 % Create the polygon in the FDTD session
 appevalscript(FDTD_session, 'addpoly;');
-appevalscript(FDTD_session, 'set("vertices",polygon_PFN);');
+appevalscript(FDTD_session, 'set("vertices",polygon_TiO2);');
 
 % Position and name the polygon
 appevalscript(FDTD_session, 'set("x",0);');
 appevalscript(FDTD_session, 'set("y",0);');
 appevalscript(FDTD_session, 'set("z",0);');
-appevalscript(FDTD_session, 'set("name", "PFN_pattern");');
+appevalscript(FDTD_session, 'set("name", "TiO2_pattern");');
 
-% Set material to PFN (PFO is same as PFN)
-appevalscript(FDTD_session, 'set("material","PFO");');
+% Set material to TiO2
+appevalscript(FDTD_session, 'set("material","TiO2");');
 
 % Move to bottomGrating structure group
 appevalscript(FDTD_session, 'addtogroup("bottomGrating");');
@@ -129,74 +129,74 @@ appevalscript(FDTD_session, 'addstructuregroup;');
 appevalscript(FDTD_session, 'set("name","topGrating");');
 
 %% Transfer polygon vertices to FDTD session
-appputvar(FDTD_session,'polygon_2FBT',PinOpen);
+appputvar(FDTD_session,'polygon_Au',PinOpen);
 
 %% Create the polygon in the FDTD session
-% Find Ag ymin
-appevalscript(FDTD_session, 'select("PPDT2FBT_PC71BM");');
-appevalscript(FDTD_session, 'FBT_ymax = get("y max");');
+% Find Au ymin
+appevalscript(FDTD_session, 'select("Au");');
+appevalscript(FDTD_session, 'Au_ymin = get("y min");');
 
 % Create Polygon
 appevalscript(FDTD_session, 'addpoly;');
-appevalscript(FDTD_session, 'set("vertices",polygon_2FBT);');
+appevalscript(FDTD_session, 'set("vertices",polygon_Au);');
 
 % Position and name the polygon
 appevalscript(FDTD_session, 'set("x",0);');
-appevalscript(FDTD_session, 'set("y",FBT_ymax);');
+appevalscript(FDTD_session, 'set("y",Au_ymin);');
 appevalscript(FDTD_session, 'set("z",0);');
-% % Rotate the gratting
-% appevalscript(FDTD_session, 'set("first axis", "x");');
-% appevalscript(FDTD_session, 'set("rotation 1", 180);');
+% Rotate the gratting
+appevalscript(FDTD_session, 'set("first axis", "x");');
+appevalscript(FDTD_session, 'set("rotation 1", 180);');
 
-appevalscript(FDTD_session, 'set("name", "2FBT_pattern");');
+appevalscript(FDTD_session, 'set("name", "Au_pattern");');
 
 % Set material to ITO
-appevalscript(FDTD_session, 'set("material","PPDT2FBTPC71BM");');
+appevalscript(FDTD_session, 'set("material","Au (Gold) - Johnson and Christy");');
 
 % Move to bottomGrating structure group
 appevalscript(FDTD_session, 'addtogroup("topGrating");');
 
-%% Make PFN surface patterned
-% Get MoOx thickness from simulation file
-appevalscript(FDTD_session, 'select("MoOx");');
-appevalscript(FDTD_session, 'MoOx_yspan = get("y span");');
-MoOx_thickness = appgetvar(FDTD_session,'MoOx_yspan');
-
-% Make polybuffer for the MoOx layer
-clear Pout boundaryNew boundaryNew_temp boundaryNewOpen;
-Pout = polybuffer(PinOpen,'lines',MoOx_thickness);
-Pout = rmholes(Pout);  % Remove holes
-boundaryNew_temp = Pout.Vertices;
-boundaryNew_temp = rmmissing(boundaryNew_temp);
-% Close boundaryNew_temp polygon
-[boundaryNewOpen(:,1), boundaryNewOpen(:,2)] = closePolygonParts(boundaryNew_temp(:,1), boundaryNew_temp(:,2));
-% Reduce number of vertices
-boundaryNewOpen = reducepoly(boundaryNewOpen);
-% Close boundaryNewOpen polygon
-[boundaryNew(:,1), boundaryNew(:,2)] = closePolygonParts(boundaryNewOpen(:,1), boundaryNewOpen(:,2));
-
-% Transfer polybuffer vertices to FDTD session
-appputvar(FDTD_session,'polygon_MoOx',boundaryNew);
-
-% Create the polygon in the FDTD session
-appevalscript(FDTD_session, 'addpoly;');
-appevalscript(FDTD_session, 'set("vertices",polygon_MoOx);');
-
-% Position and name the polygon
-appevalscript(FDTD_session, 'set("x",0);');
-appevalscript(FDTD_session, 'set("y",FBT_ymax);');
-appevalscript(FDTD_session, 'set("z",0);');
+% %% Make SpiroOMeTAD surface patterned
+% % Get SpiroOMeTAD thickness from simulation file
+% appevalscript(FDTD_session, 'select("SpiroOMeTAD");');
+% appevalscript(FDTD_session, 'SpiroOMeTAD_yspan = get("y span");');
+% SpiroOMeTAD_thickness = appgetvar(FDTD_session,'SpiroOMeTAD_yspan');
+% 
+% % Make polybuffer for the MoOx layer
+% clear Pout boundaryNew boundaryNew_temp boundaryNewOpen;
+% Pout = polybuffer(PinOpen,'lines',SpiroOMeTAD_thickness);
+% Pout = rmholes(Pout);  % Remove holes
+% boundaryNew_temp = Pout.Vertices;
+% boundaryNew_temp = rmmissing(boundaryNew_temp);
+% % Close boundaryNew_temp polygon
+% [boundaryNewOpen(:,1), boundaryNewOpen(:,2)] = closePolygonParts(boundaryNew_temp(:,1), boundaryNew_temp(:,2));
+% % Reduce number of vertices
+% boundaryNewOpen = reducepoly(boundaryNewOpen);
+% % Close boundaryNewOpen polygon
+% [boundaryNew(:,1), boundaryNew(:,2)] = closePolygonParts(boundaryNewOpen(:,1), boundaryNewOpen(:,2));
+% 
+% % Transfer polybuffer vertices to FDTD session
+% appputvar(FDTD_session,'polygon_SpiroOMeTAD',boundaryNew);
+% 
+% % Create the polygon in the FDTD session
+% appevalscript(FDTD_session, 'addpoly;');
+% appevalscript(FDTD_session, 'set("vertices",polygon_SpiroOMeTAD);');
+% 
+% % Position and name the polygon
+% appevalscript(FDTD_session, 'set("x",0);');
+% appevalscript(FDTD_session, 'set("y",Au_ymin);');
+% appevalscript(FDTD_session, 'set("z",0);');
 % % Rotate the gratting
 % appevalscript(FDTD_session, 'set("first axis", "x");');
 % appevalscript(FDTD_session, 'set("rotation 1", 180);');
-
-appevalscript(FDTD_session, 'set("name", "MoOx_pattern");');
-
-% Set material to PFN (PFO is same as PFN)
-appevalscript(FDTD_session, 'set("material","MoOx");');
-
-% Move to bottomGrating structure group
-appevalscript(FDTD_session, 'addtogroup("topGrating");');
+% 
+% appevalscript(FDTD_session, 'set("name", "SpiroOMeTAD_pattern");');
+% 
+% % Set material to SpiroOMeTAD
+% appevalscript(FDTD_session, 'set("material","SpiroOMeTAD");');
+% 
+% % Move to bottomGrating structure group
+% appevalscript(FDTD_session, 'addtogroup("topGrating");');
 
 %% Make copies on both sides
 appevalscript(FDTD_session, 'select("topGrating");');
@@ -230,7 +230,7 @@ appevalscript(FDTD_session,'save("tmp_FDTD");');
 appevalscript(FDTD_session, 'run;');
 
 %% Run the LED script
-appevalscript(FDTD_session, 'whiteLED_1000lxSpectra;');
+appevalscript(FDTD_session, 'AM15GSpectra;');
 % Get the result
 appevalscript(FDTD_session, 'JscFDTD = Jsc_1000lx;');
 JscIdeal = appgetvar(FDTD_session,'JscFDTD');

@@ -1,0 +1,73 @@
+Lumerical 2020a FDTD Solver Version 8.23.2236 (Windows 64bit)
+ expires (month/day/year): 4/25/2020
+using config file: C:/Users/MENLAB_Simulation/AppData/Roaming/Lumerical/License.ini
+license host: DESKTOP-6L7SGD9
+current time: Thu Apr  2 16:46:13 2020
+Running on host: DESKTOP-6L7SGD9
+All processes are communicating and ready to proceed to simulation...
+Running fsp file: C:\Program Files\Lumerical\2020a\bin\fdtd-engine.exe -t 1 -remote C:/Users/MENLAB_Simulation/Desktop/GA_TexturedElectrode_IPV/MAPbI3_IPV.fsp
+number of processors is 16
+processors are distributed as: 2x8x1
+Running 2D Simulation
+Starting meshing
+Simulation size in gridpoints: 57 x 72 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0 seconds of CPU time
+120 120
+Starting meshing
+Simulation size in gridpoints: 57 x 72 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0 seconds of CPU time
+80 80
+finished material properties
+Selected kernel with optimization level: 2 and split-field propagation direction: 0
+Starting meshing
+Simulation size in gridpoints: 57 x 72 x 1
+Refined 0 mesh cells (0%)
+Completed meshing!
+Meshing complete in 0.015625 seconds of CPU time
+120 120
+Selected kernel with optimization level: 2 and split-field propagation direction: 0
+-----------------------------------------
+Beginning initialization of 2D FDTD Simulation
+  Including TE Simulation
+Starting to add sources to simulation
+
+Adding Gaussian source propagating in Y
+Starting to add boundary conditions to simulation
+Adding parallel BC
+Adding parallel BC
+Adding PML BC
+Adding parallel BC
+Starting to add monitors to Simulation
+Adding analysis monitor
+Adding frequency monitor
+Adding index monitor
+Finished initialization of 2D Simulation
+-----------------------------------------
+All processes are communicating and ready to proceed to simulation...
+Starting 858543 total iterations
+0.00559087% complete. Max time remaining: 8 mins, 54 secs. Auto Shutoff: 1
+1.90649% complete. Max time remaining: 3 mins, 21 secs. Auto Shutoff: 0.0348404
+3.81484% complete. Max time remaining: 3 mins, 19 secs. Auto Shutoff: 0.0003278
+5.2461% complete. Max time remaining: 3 mins, 16 secs. Auto Shutoff: 1.84623e-05
+100% complete. Max time remaining: 0 mins, 0 secs. Auto Shutoff: 9.55725e-06
+Early termination of simulation, the autoshutoff criteria are satisfied.
+Completed 48292 iterations, or 5.624881e-14s of Simulation Time
+Process 0 starting to collect data
+    collecting TM monitor data
+    collecting TE monitor data
+    collecting TM source data
+    collecting TE source data
+Finished collecting data
+Simulation completed successfully at: Thu Apr  2 16:46:36 2020
+Overall wall time measurements in seconds: 31.4523
+    time to mesh and initialize: 1.05543
+    time to run FDTD simulation: 11.6477
+    time to checkpoint simulation: 5e-07
+    time to finalize data and save to files: 11.1173
+    miscellaneous time: 7.63183
+    FDTD solver speed on process 0: 17.0155 Mnodes/s
+    total FDTD solver speed on 16 processes: 272.247 Mnodes/s

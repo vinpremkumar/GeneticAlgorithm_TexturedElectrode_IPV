@@ -1,0 +1,371 @@
+##############################################
+# Generation rate
+# This script calculates the electrical generation 
+# rate by assuming that each absorbed photon generates 
+# one electron-hole pair. 
+# The FDTD source intensity is normalized to match the 
+# 1000 lx white LED power spectrum.
+# This object also saves the data to a data file that 
+# can be imported into the Generation rate object within 
+# Lumerical's DEVICE, for further electrical simulation.
+#
+# Notes: 
+# Exporting the generation rate for DEVICE
+# This object exports the generation rate data
+# in a form that can be easily imported into 
+# the Import Generation rate object. 
+# Exporting multiple periods
+# Typical FDTD simulations include a single period
+# of the structure, while typical DEVICE simulations
+# include many periods. This script will array the 
+# generation rate data to several periods, simplifying 
+# the process of importing the data into DEVICE. 
+# Jsc calculation in 2D/3D simulations
+# When calculating Jsc in 3D simulations, we assume the source
+# propagation is along Z. In 2D, propagation along Y.
+#
+# Input properties
+# export filename: file name used to export generation rate data to DEVICE
+# axis to average: the 2D DEVICE solver can only import 2D generation rate data. 
+# average dimension: the dimension to compress, by averaging the generation rate over that dimension. 'x' or 'y', or 'none'. Only for 3D simulations.
+# periods: the number of periods to array the generation rate.
+# implemented when compressing in one dimension.
+# make plots: if set to 1, the analysis script will create plots of the absorption and generation rate
+#
+# Output properties
+# Pabs: power absorbed per unit volume at each position (units: fraction of source power/m^3)
+# Pabs_total: total absorbed power vs frequency
+# G: electrical generation rate as a function of x,y,z (units: charge pairs/m^3/s)
+# G_export the generation rate exported to DEVICE (averaged and/or arrayed) (units: charge pairs/m^3/s)
+# Jsc: short circuit current (units: Amp, or Amp/m in 2D)
+#
+# Tags: generation rate electron hole charge device short circuit current
+#
+# Copyright 2012 Lumerical Solutions Inc
+##############################################
+
+## 1000 lx or 900 lx
+#
+#Insert source wavelength and spectral power as vectors
+sourcewavelength = solar(0)*1e9;
+sourcespectra = solar(1)*1e-9;
+
+# get position vectors from monitor
+# Note that the monitor interpolation is disabled, so we also need the offset vectors
+f=getdata("field_act_L","f");
+x=getdata("field_act_L","x",1);
+y=getdata("field_act_L","y",1);
+z=getdata("field_act_L","z",1);
+delta_x=getdata("field_act_L","delta_x",1);
+delta_y=getdata("field_act_L","delta_y",1);
+if (havedata("field_act_L","dimension")==3) {
+delta_z=getdata("field_act_L","delta_z",1);
+} else {
+delta_z = 0;
+}
+
+Nx = length(x);
+Ny = length(y);
+Nz = length(z);
+Nf = length(f);
+
+##########################################################################
+# Calculate spatial absorption
+#?"Starting absorption (Pabs) calculation";
+W = meshgrid4d(4,x,y,z,f*2*pi); # create 4D matrix of f
+SP = meshgrid4d(4,x,y,z,sourcepower(f)); # 4D matrix of source power
+
+# calculate spatial absorption from each field_act_L component separately (watts/m^3)
+if (havedata("index_act_L","index_x")) {
+Pabs_x = 0.5*eps0*W*(abs(getdata("field_act_L","Ex",1))^2*imag(getdata("index_act_L","index_x",1)^2));
+Pabs_y = 0.5*eps0*W*(abs(getdata("field_act_L","Ey",1))^2*imag(getdata("index_act_L","index_y",1)^2));
+} else {
+Pabs_x = matrix(Nx,Ny,Nz,Nf);
+Pabs_y = matrix(Nx,Ny,Nz,Nf);
+}
+if (havedata("index_act_L","index_z")) {
+Pabs_z = 0.5*eps0*W*(abs(getdata("field_act_L","Ez",1))^2*imag(getdata("index_act_L","index_z",1)^2));
+} else {
+Pabs_z = matrix(Nx,Ny,Nz,Nf);
+}
+
+# spatially interpolate absorption to standard mesh cell locations 
+Pabs_matrix = ( interp(Pabs_x,x+delta_x,y,z,f,x,y,z,f) +
+interp(Pabs_y,x,y+delta_y,z,f,x,y,z,f) +
+interp(Pabs_z,x,y,z+delta_z,f,x,y,z,f) ) / SP;
+Pabs_x=0; Pabs_y=0; Pabs_z=0; W=0; SP=0; # Clear variables to free memory
+# end absorption calculation
+
+
+##########################################################################
+# Calculate generation rate
+#?"Starting generation rate (G) calculation";
+
+# Get the AM1.5 solar spectrum
+lam_nm = sourcewavelength; # solar spectrum wavelength vector, in units of nm.
+Psolar = sourcespectra; # solar power spectrum, in units of Watts/m^2/nm
+f_solar = 1e9*c/lam_nm; # solar spectrum frequency vector, in units of Hz
+Nf_solar = length(f_solar);
+
+# select the region of solar spectrum covered by the monitor data
+fl = max([min(f_solar),min(f)]);
+fh = min([max(f_solar),max(f)]);
+fi = find((f_solar>=fl)&(f_solar<=fh));
+f_solar = f_solar(fi);
+lam_nm = lam_nm(fi);
+Psolar = Psolar(fi);
+Nf_solar = length(f_solar);
+nm = Psolar/sourceintensity(f_solar); # units of 1/nm
+nm = meshgrid4d(4,x,y,z,nm);
+
+
+# Calculate number of absorbed photon per unit volume
+# assume this is equal to the number of generated electron/hole pairs
+if (havedata("index_act_L","index_x")) {
+gx = abs(getdata("field_act_L","Ex",1))^2 * imag(eps0*getdata("index_act_L","index_x",1)^2);
+gy = abs(getdata("field_act_L","Ey",1))^2 * imag(eps0*getdata("index_act_L","index_y",1)^2);
+} else {
+gx = matrix(Nx,Ny,Nz,Nf);
+gy = matrix(Nx,Ny,Nz,Nf);
+}
+if (havedata("index_act_L","index_z")) {
+gz = abs(getdata("field_act_L","Ez",1))^2 * imag(eps0*getdata("index_act_L","index_z",1)^2);
+} else {
+gz = matrix(Nx,Ny,Nz,Nf);
+}
+
+# sum contribution from each component, multiply by required constants, and
+# interpolate absorption to standard mesh cell locations and solar frequency vector
+g = 0.5 * ( interp(gx,x+delta_x,y,z,f,x,y,z,f_solar) +
+interp(gy,x,y+delta_y,z,f,x,y,z,f_solar) +
+interp(gz,x,y,z+delta_z,f,x,y,z,f_solar) ) / hbar;
+gx=0; gy=0; gz=0; # clear variables, to free memory
+
+# Calculate the generation rate by integrating 'g' over wavelength
+# The generate rate is the number of electron hole pairs per unit volume per second. (units: 1/m^3/s)
+G_matrix = integrate2(g*nm,4,lam_nm);
+#G_mat_temp = G_matrix;
+g=0;
+
+## Setting generation rate to areas outside active layer
+material="MAPbI3 - 2";   # material 
+min_f=c/(lam_nm(end,1)*1e-9);      # source min frequency
+max_f=c/(lam_nm(1,1)*1e-9);      # source max frequency
+IIy = getdata("index_act_L","index_y",1);
+
+# get FDTD fit of experimental data
+n_fdtd=real(getfdtdindex(material,max_f,min_f,max_f));
+
+## rounding to lower integer to remove noise
+n_fdtd = floor(100*n_fdtd);
+temp_v1 = floor(100*real(IIy(:,:,1,1)));
+# Finding the matrix indices which should be made 0;
+temp_v2 = abs(temp_v1 - n_fdtd) < 2;
+matlabput(temp_v2);
+matlab("temp_v3 = double(bwareaopen(temp_v2, 2));");
+matlabget(temp_v3);
+
+removeNonActiveLayerPhotons = G_matrix;
+removeNonActiveLayerPhotons(:,:,1) = temp_v3;
+G_matrix = G_matrix * removeNonActiveLayerPhotons;
+
+temp_v1 = 0;
+temp_v2 = 0;
+temp_v3 = 0;
+removeNonActiveLayerPhotons = 0;
+# end generation rate calculation
+
+##########################################################
+# unfold data if symmetry BC's were used.
+#?"Unfolding";
+if ( (length(getdata("field_act_L","x",1)) != length(getdata("field_act_L","x",2))) ) {
+xTemp = x;
+x = [-x(Nx:-1:2); x];
+PabsTemp = Pabs_matrix;
+Pabs_matrix = matrix(2*Nx-1,Ny,Nz,Nf);
+GTemp = G_matrix;
+G_matrix = matrix(2*Nx-1,Ny,Nz);
+Pabs_matrix(1:(Nx-1),1:Ny,1:Nz,1:Nf) = PabsTemp(Nx:-1:2,1:Ny,1:Nz,1:Nf);
+Pabs_matrix(Nx:(2*Nx-1),1:Ny,1:Nz,1:Nf) = PabsTemp;
+G_matrix(1:(Nx-1),1:Ny,1:Nz) = GTemp(Nx:-1:2,1:Ny,1:Nz);
+G_matrix(Nx:(2*Nx-1),1:Ny,1:Nz) = GTemp;
+Nx = length(x);
+}
+if (length(getdata("field_act_L","y",1)) != length(getdata("field_act_L","y",2))) {
+yTemp = y;
+y = [-y(Ny:-1:2); y];
+PabsTemp = Pabs_matrix;
+Pabs_matrix = matrix(Nx,2*Ny-1,Nz,Nf);
+GTemp = G_matrix;
+G_matrix = matrix(Nx,2*Ny-1,Nz);
+Pabs_matrix(1:Nx,1:(Ny-1),1:Nz,1:Nf) = PabsTemp(1:Nx,Ny:-1:2,1:Nz,1:Nf);
+Pabs_matrix(1:Nx,Ny:(2*Ny-1),1:Nz,1:Nf) = PabsTemp;
+G_matrix(1:Nx,1:(Ny-1),1:Nz) = GTemp(1:Nx,Ny:-1:2,1:Nz);
+G_matrix(1:Nx,Ny:(2*Ny-1),1:Nz) = GTemp;
+Ny = length(y);
+}
+PabsTemp=0; GTemp=0; # Clear memory
+# end of unfolding
+
+
+##########################################################
+# Export data to DEVICE. Compress data in 3rd dimension, and Array the generation rate '1' time
+
+# check inputs
+dim = getdata("field_act_L","dimension");
+
+if ( (dim==2) & ("none" != "none") ) { message("Warning! Should not average in 2D simulations."); } 
+
+
+# average data over 3rd dimension for export to DEVICE
+if ("none" == "x") {
+G_temp = matrix(2,Ny,Nz);
+G_temp(1,1:Ny,1:Nz) = integrate2(G_matrix,1,x)/(max(x)-min(x));
+G_temp(2,1:Ny,1:Nz) = integrate2(G_matrix,1,x)/(max(x)-min(x));
+x_export = [min(x), max(x)];
+G_matrix_export = G_temp;
+y_export = y;
+z_export = z;
+}
+if ("none" == "y") {
+G_temp = matrix(Nx,2,Nz);
+G_temp(1:Nx,1,1:Nz) = integrate2(G_matrix,2,y)/(max(y)-min(y));
+G_temp(1:Nx,2,1:Nz) = integrate2(G_matrix,2,y)/(max(y)-min(y));
+y_export = [min(y), max(y)];
+G_matrix_export = G_temp;
+x_export = x;
+z_export = z;
+}
+if ((dim==3) & ("none" == "none")) {
+G_matrix_export = G_matrix;
+x_export = x;
+y_export = y;
+z_export = z;
+}
+if ((dim==2) & ("none" == "none")) {
+G_matrix_export = matrix(Nx,Ny,2);
+G_matrix_export(1:Nx,1:Ny,1) = G_matrix;
+G_matrix_export(1:Nx,1:Ny,2) = G_matrix;
+x_export = x;
+y_export = y;
+z_export = [-1e-6,1e-6];
+Nz=2;
+}
+# array data to include multiple 1 for export to DEVICE. 
+if ( ("none" == "x") & (1>1) ) {
+temp = G_matrix_export;
+for(i=1;i<1;i=i+1){
+G_matrix_export = [G_matrix_export, temp(1:length(x_export),2:Ny,1:Nz)];
+y_export = [y_export; y(2:Ny)+max(y_export)-min(y_export)];
+}
+y_export = y_export - (max(y_export) + min(y_export))/2; # re-center at zero
+}
+if ( (("none"=="none") | ("none"=="y")) & (1>1) ) { # for 3D and 2D, stretch in x direction only
+temp = G_matrix_export;
+for(i=1;i<1;i=i+1){
+G_matrix_export = [G_matrix_export; temp(2:Nx,1:length(y_export),1:Nz)];
+x_export = [x_export; x(2:Nx)+max(x_export)-min(x_export)];
+}
+x_export = x_export - (max(x_export) + min(x_export))/2; # re-center at zero
+}
+temp=0;
+
+# Use proper variable name for export to DEVICE data file.
+# create backup copy of original data
+x_original=x;
+y_original=y;
+z_original=z;
+G=G_matrix_export;
+x=x_export;
+y=y_export;
+z=z_export;
+
+if(length("G")>0){
+#?"save data file for DEVICE";
+matlabsave("G",x,y,z,G);
+}
+
+# revert back to standard position vectors
+x = x_original;
+y = y_original;
+z = z_original;
+Nz=length(z);
+
+
+##########################################################
+# Calculate the short circuit current (Jsc)
+normLengthX = max(x) - min(x);
+normLengthY = max(y) - min(y);
+Igen = e*integrate2(G_matrix,1:3,x,y,z); # A
+if (dim==3) {
+Jsc = Igen/(normLengthX*normLengthY); # A/m^2
+} else {
+Jsc = Igen/(normLengthX); # A/m^2
+}
+# end Jsc calculation
+
+# re-calculate Jsc for exported data, to confirm result is the same
+normLengthX = max(x_export) - min(x_export);
+normLengthY = max(y_export) - min(y_export);
+normLengthZ = max(z_export) - min(z_export);
+Igen_export = e*integrate2(G_matrix_export,1:3,x_export,y_export,z_export); # A
+if (dim==3) {
+Jsc_export = Igen_export/(normLengthX*normLengthY); # A/m^2
+} else {
+Jsc_export = Igen_export/(normLengthX*normLengthZ); # A/m^2
+}
+
+
+# create data sets
+Pabs = rectilineardataset("Pabs",x,y,z);
+Pabs.addparameter("lambda",c/f,"f",f);
+Pabs.addattribute("Pabs",Pabs_matrix);
+
+G = rectilineardataset("G",x,y,z);
+G.addattribute("G",G_matrix);
+
+G_export = rectilineardataset("G export",x_export,y_export,z_export);
+G_export.addattribute("G",G_matrix_export);
+
+Pabs_total = matrixdataset("Pabs total");
+Pabs_total.addparameter("lambda",c/f,"f",f);
+Pabs_total.addattribute("Pabs_total",integrate2(Pabs_matrix,1:3,x,y,z));
+
+#Jsc_matrix=Jsc;
+#Jsc = matrixdataset("Jsc");
+#Jsc.addattribute("Jsc",Jsc_matrix);
+Jsc=Jsc; # return as a simple matrix, rather than dataset
+
+
+##########################################################
+# create plots and output results to prompt
+#?"Current from simulation volume: " + num2str(Igen) + " A";
+Jsc_1000lx = Jsc;
+?"AM1.5G Jsc,ideal:";
+?num2str(Jsc)+" µA/cm^2";
+#?"Exported data short circuit current: " + num2str(Jsc_export) + " A/m^2";
+#?"Max generation rate: " + num2str(max(G.G)) + " 1/m^3/s";
+
+
+# plot results
+if (0) { 
+pos = (max(y)+min(y))/2;
+val = log10(pinch(G.G,2,find(y,pos)));
+image(x*1e9,z*1e9,val,"x (nm)","z (nm)","G at y=" + num2str(round(pos*1e9)) + "nm");
+val = pinch(pinch(Pabs.Pabs,4,Nf/2),2,find(y,pos));
+image(x*1e9,z*1e9,val,"x (nm)","z (nm)","Pabs at y=" + num2str(round(pos*1e9)) + "nm, lambda="+num2str(round(c/f(Nf/2)*1e9))+" nm");
+
+pos = (max(x)+min(x))/2;
+val = log10(pinch(G.G,1,find(x,pos)));
+image(y*1e9,z*1e9,val,"y (nm)","z (nm)","G at x=" + num2str(round(pos*1e9)) + "nm");
+val = pinch(pinch(Pabs.Pabs,4,Nf/2),1,find(x,pos));
+image(y*1e9,z*1e9,val,"y (nm)","z (nm)","Pabs at x=" + num2str(round(pos*1e9)) + "nm, lambda="+num2str(round(c/f(Nf/2)*1e9))+" nm");
+
+pos = (max(z)+min(z))/2;
+val = log10(pinch(G.G,3,find(z,pos)));
+image(x*1e9,y*1e9,val,"x (nm)","y (nm)","G at z=" + num2str(round(pos*1e9)) + "nm");
+val = pinch(pinch(Pabs.Pabs,4,Nf/2),3,find(z,pos));
+image(x*1e9,y*1e9,val,"x (nm)","y (nm)","Pabs at z=" + num2str(round(pos*1e9)) + "nm, lambda="+num2str(round(c/f(Nf/2)*1e9))+" nm");
+
+plot(c/f*1e9,integrate2(Pabs.Pabs,1:3,x,y,z),"wavelength (nm)","absorbed power");
+}

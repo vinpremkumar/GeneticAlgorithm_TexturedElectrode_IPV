@@ -8,15 +8,14 @@
 % Output: JscIdeal                - Jsc calculated from FDTD simulation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function JscIdeal = FDTDsimulation_2FBT_complementaryGrating (dBetweenGratings, polygonVertices)
+function JscIdeal = FDTDsimulation_2FBT (dBetweenGratings, polygonVertices)
 warning('off', 'MATLAB:polyshape:repairedBySimplify');
 %% Initialization
 nm = 10^-9;
 dBetweenGratings = dBetweenGratings*nm;
 
 %% Open Lumerical FDTD session
-FDTD_session=appopen('fdtd', '-hide');
-% FDTD_session=appopen('fdtd');
+FDTD_session=appopen('fdtd');
 
 % Set path = matlab file's path
 appputvar(FDTD_session,'path',pwd);
@@ -129,29 +128,29 @@ appevalscript(FDTD_session, 'addstructuregroup;');
 appevalscript(FDTD_session, 'set("name","topGrating");');
 
 %% Transfer polygon vertices to FDTD session
-appputvar(FDTD_session,'polygon_2FBT',PinOpen);
+appputvar(FDTD_session,'polygon_Ag',PinOpen);
 
 %% Create the polygon in the FDTD session
 % Find Ag ymin
-appevalscript(FDTD_session, 'select("PPDT2FBT_PC71BM");');
-appevalscript(FDTD_session, 'FBT_ymax = get("y max");');
+appevalscript(FDTD_session, 'select("Ag");');
+appevalscript(FDTD_session, 'Ag_ymin = get("y min");');
 
 % Create Polygon
 appevalscript(FDTD_session, 'addpoly;');
-appevalscript(FDTD_session, 'set("vertices",polygon_2FBT);');
+appevalscript(FDTD_session, 'set("vertices",polygon_Ag);');
 
 % Position and name the polygon
 appevalscript(FDTD_session, 'set("x",0);');
-appevalscript(FDTD_session, 'set("y",FBT_ymax);');
+appevalscript(FDTD_session, 'set("y",Ag_ymin);');
 appevalscript(FDTD_session, 'set("z",0);');
-% % Rotate the gratting
-% appevalscript(FDTD_session, 'set("first axis", "x");');
-% appevalscript(FDTD_session, 'set("rotation 1", 180);');
+% Rotate the gratting
+appevalscript(FDTD_session, 'set("first axis", "x");');
+appevalscript(FDTD_session, 'set("rotation 1", 180);');
 
-appevalscript(FDTD_session, 'set("name", "2FBT_pattern");');
+appevalscript(FDTD_session, 'set("name", "Ag_pattern");');
 
 % Set material to ITO
-appevalscript(FDTD_session, 'set("material","PPDT2FBTPC71BM");');
+appevalscript(FDTD_session, 'set("material","Ag (Silver) - CRC Copy 1");');
 
 % Move to bottomGrating structure group
 appevalscript(FDTD_session, 'addtogroup("topGrating");');
@@ -184,11 +183,11 @@ appevalscript(FDTD_session, 'set("vertices",polygon_MoOx);');
 
 % Position and name the polygon
 appevalscript(FDTD_session, 'set("x",0);');
-appevalscript(FDTD_session, 'set("y",FBT_ymax);');
+appevalscript(FDTD_session, 'set("y",Ag_ymin);');
 appevalscript(FDTD_session, 'set("z",0);');
-% % Rotate the gratting
-% appevalscript(FDTD_session, 'set("first axis", "x");');
-% appevalscript(FDTD_session, 'set("rotation 1", 180);');
+% Rotate the gratting
+appevalscript(FDTD_session, 'set("first axis", "x");');
+appevalscript(FDTD_session, 'set("rotation 1", 180);');
 
 appevalscript(FDTD_session, 'set("name", "MoOx_pattern");');
 
