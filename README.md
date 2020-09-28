@@ -8,5 +8,8 @@ Using evolutionary algorithm to model surface texture of electrodes in indoor ph
 # Run:
 Run the 'Main.m' file
 
+# Contact:
+vinpremkumar@gmail.com
+
 # LICENSE:
 Licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007. Check the 'LICENSE.txt' file for further details
