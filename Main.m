@@ -1,5 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% Created by: PREMKUMAR VINCENT                                            %%%%%%                 
+%%%%%% Created by: PREMKUMAR VINCENT                                            %%%%%% 
+%%%%%% Contact: vinpremkumar@gmail.com                                          %%%%%%
 %%%%%% This is an evolutionary algorithm method used to design                  %%%%%%
 %%%%%% grating patterns on the top and bottom electrodes of solar cell          %%%%%%
 %%%%%% The interspacing between the grating patterns is also evolved to         %%%%%%
