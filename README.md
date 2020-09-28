@@ -11,5 +11,5 @@ Run the 'Main.m' file
 # Contact:
 vinpremkumar@gmail.com
 
-# LICENSE:
+# License:
 Licensed under GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007. Check the 'LICENSE.txt' file for further details
